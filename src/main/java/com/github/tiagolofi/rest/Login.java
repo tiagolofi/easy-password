@@ -53,9 +53,6 @@ public class Login {
             AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method);
             
             switch (authMethod) {
-                case QRCODE:
-                    // TODO: Validar QR Code scaneado
-                    return null;
                 case TOTP:
                     // TODO: Validar TOTP
                     return null;

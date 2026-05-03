@@ -15,7 +15,7 @@
                     <h1>Easy Password</h1>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-logout" onclick="logout()">Sair</button>
+                    <button type="button" class="btn-logout" onclick="logout()">Sair</button>
                 </div>
             </div>
         </header>
@@ -24,7 +24,7 @@
             <section class="items-section">
                 <div class="section-header">
                     <h2>Seus Serviços</h2>
-                    <button class="btn-add-item" onclick="addNewItem()">+ Adicionar</button>
+                    <button type="button" class="btn-add-item" onclick="addNewItem()">+ Adicionar</button>
                 </div>
 
                 <div id="items-container" class="items-container">
@@ -37,10 +37,10 @@
                                         <span>{it.service}</span>
                                     </div>
                                     <div class="item-actions">
-                                        <button class="item-action-btn" onclick="editItem('{it.service}')" title="Editar">
+                                        <button type="button" class="item-action-btn" onclick="editItem('{it.service}')" title="Editar">
                                             ✏️ Editar
                                         </button>
-                                        <button class="item-action-btn" onclick="deleteItem('{it.service}')" title="Deletar">
+                                        <button type="button" class="item-action-btn" onclick="deleteItem('{it.service}')" title="Deletar">
                                             🗑️ Deletar
                                         </button>
                                     </div>
@@ -49,18 +49,40 @@
                                 <div class="item-password-section">
                                     <label class="password-label">Senha</label>
                                     <div class="password-container">
-                                        <div class="password-display" id="password-{it.service}">
+                                        <div class="password-display">
                                             <span class="password-hidden" id="password-text-{it.service}">••••••••</span>
                                         </div>
-                                        <button type="button" class="toggle-visibility" id="toggle-{it.service}" onclick="togglePasswordVisibility('{it.service}')" title="Mostrar/Ocultar">
+
+                                        <button type="button"
+                                                class="toggle-visibility"
+                                                id="toggle-{it.service}"
+                                                onclick="togglePasswordVisibility('{it.service}')"
+                                                title="Mostrar/Ocultar">
                                             👁️
                                         </button>
-                                        <button type="button" class="copy-btn" onclick="copyToClipboard('{it.service}')" title="Copiar para Área de Transferência">
+
+                                        <!-- ✅ BOTÃO CORRIGIDO -->
+                                        <button type="button"
+                                                class="view-original-btn"
+                                                id="view-{it.service}"
+                                                onclick="openPinModal('{it.service}', document.getElementById('password-value-{it.service}').value)"
+                                                title="Exibir Senha Original">
+                                            🔓
+                                        </button>
+
+                                        <button type="button"
+                                                class="copy-btn"
+                                                onclick="copyToClipboard('{it.service}')"
+                                                title="Copiar para Área de Transferência">
                                             📋
                                         </button>
                                     </div>
                                 </div>
-                                <input type="hidden" id="password-value-{it.service}" value="{it.password}">
+
+                                <!-- senha criptografada -->
+                                <input type="hidden"
+                                       id="password-value-{it.service}"
+                                       value="{it.password.encrypt()}">
                             </div>
                         {/each}
                     {#else}
@@ -68,7 +90,7 @@
                             <span class="empty-state-icon">📭</span>
                             <p class="empty-state-text">Nenhum serviço cadastrado</p>
                             <p class="empty-state-subtext">Comece a adicionar suas senhas agora</p>
-                            <button class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
+                            <button type="button" class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
                         </div>
                     {/else}
                     {/if}
@@ -77,40 +99,67 @@
         </main>
     </div>
 
-    <!-- Modal para adicionar novo item -->
+    <!-- Modal adicionar item -->
     <div id="add-item-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Adicionar Novo Serviço</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button type="button" class="modal-close" onclick="closeModal()">&times;</button>
             </div>
-            
+
             <form id="add-item-form" onsubmit="submitNewItem(event)">
                 <div class="form-group">
                     <label for="service-input">Nome do Serviço</label>
-                    <input 
-                        type="text" 
-                        id="service-input" 
-                        name="service" 
-                        placeholder="ex: Gmail, GitHub, etc"
-                        required
-                    >
+                    <input type="text"
+                           id="service-input"
+                           name="service"
+                           placeholder="ex: Gmail, GitHub"
+                           required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password-input">Senha</label>
-                    <input 
-                        type="password" 
-                        id="password-input" 
-                        name="password" 
-                        placeholder="Digite a senha"
-                        required
-                    >
+                    <input type="password"
+                           id="password-input"
+                           name="password"
+                           placeholder="Digite a senha"
+                           required>
                 </div>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
                     <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ✅ MODAL PIN -->
+    <div id="pin-modal" class="modal">
+        <div class="modal-content modal-pin">
+            <div class="modal-header">
+                <h3>Segurança - Insira seu PIN</h3>
+                <button type="button" class="modal-close" onclick="closePinModal()">&times;</button>
+            </div>
+
+            <form onsubmit="validatePinAndDecrypt(event)">
+                <div class="form-group">
+                    <label for="pin-input">PIN de 4 dígitos</label>
+
+                    <input type="password"
+                           id="pin-input"
+                           name="pin"
+                           placeholder="••••"
+                           maxlength="4"
+                           inputmode="numeric"
+                           required>
+
+                    <p class="pin-help">Digite apenas números</p>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closePinModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Validar</button>
                 </div>
             </form>
         </div>

@@ -1,7 +1,6 @@
 package com.github.tiagolofi.rest;
 
 public enum AuthenticationMethod {
-    QRCODE("qrcode"),
     TOTP("totp"),
     PASSWORD("password");
 

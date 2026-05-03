@@ -1,35 +1,42 @@
 package com.github.tiagolofi.repository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.function.Predicate;
 
 public abstract class InMemoryRepository<T> {
     
-    private Map<UUID, T> data = new HashMap<>();
+    private List<T> data = new ArrayList<>();
 
-    public UUID persist(T value) {
-        var id = UUID.randomUUID();
-        this.data.put(id, value);
-        return id;
+    public void persist(T value) {
+        this.data.add(value);
     }
 
-    public List<UUID> persistAll(List<T> values) {
-        List<UUID> ids = new ArrayList<>();
+    public void persistAll(List<T> values) {
         for (T value : values) {
-            ids.add(persist(value));
+            persist(value);
         }
-        return ids;
     }
 
-    public T find(UUID id) {
-        return this.data.get(id);
+    public T find(Predicate<T> matches) {
+        return data
+            .stream()
+            .filter(i -> matches.test(i))
+            .findFirst()
+            .orElse(null);
     }
 
     public List<T> findAll() {
-        return new ArrayList<>(this.data.values());
+        return data;
+    }
+
+    public void update(Predicate<T> matches, T value) {
+        this.data.removeIf(matches);
+        this.data.add(value);
+    }
+
+    public void delete(T value) {
+        this.data.remove(value);
     }
 
 }

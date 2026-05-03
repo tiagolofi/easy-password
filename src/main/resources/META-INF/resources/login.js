@@ -131,37 +131,48 @@ function submitQRCode() {
 }
 
 // ===== TOTP =====
-document.getElementById('totp-form')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    submitTOTP(e);
+document.getElementById('totp-input')?.addEventListener('input', function(e) {
+    const value = e.target.value.replace(/[^\d]/g, '').slice(0, 6);
+    e.target.value = value;
+
+    if (value.length === 6) {
+        setTimeout(() => {
+            validarCodigoTOTP(value);
+        }, 200);
+    }
 });
 
-function submitTOTP(event) {
-    if (event) {
-        event.preventDefault();
-    }
-    
-    const totpInput = document.getElementById('totp-input');
-    const totp = totpInput.value.trim();
-    
-    if (!totp || totp.length !== 6 || !/^\d{6}$/.test(totp)) {
-        showError('Digite 6 dígitos válidos');
-        totpInput.focus();
-        return;
-    }
-    
+function validarCodigoTOTP(totp) {
     disableButton('.btn-primary');
     showError('');
-    
-    // Validar TOTP no servidor
+
     submitLogin('totp', { totp });
 }
 
+function submitTOTP() {
+    const totp = document.getElementById('totp-input').value.trim();
+
+    if (!/^\d{6}$/.test(totp)) {
+        showError('Digite 6 dígitos válidos');
+        return;
+    }
+
+    validarCodigoTOTP(totp);
+}
+
 // Formatação automática de entrada TOTP
+// Formatação automática + envio opcional
 document.getElementById('totp-input')?.addEventListener('input', function(e) {
     e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 6);
+
     if (e.target.value.length === 6) {
-        e.target.blur(); // Move para próximo elemento
+        // Escolha um dos comportamentos:
+
+        // 👉 Opção 1 (atual): só tira o foco
+        // e.target.blur();
+
+        // 👉 Opção 2 (melhor UX): envia automaticamente
+        enviarCodigoTOTP();
     }
 });
 
@@ -318,3 +329,26 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Login page loaded');
     showStage('selection');
 });
+
+function enviarCodigoTOTP() {
+    disableButton('.btn-primary');
+    showError('');
+
+    fetch('/login/totp', {
+        method: 'POST'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao iniciar autenticação TOTP');
+        }
+
+        console.log('Desafio TOTP iniciado');
+
+        // Foca no input
+        document.getElementById('totp-input').focus();
+    })
+    .catch(error => {
+        showError(error.message);
+        enableButton('.btn-primary');
+    });
+}

@@ -17,7 +17,7 @@ public interface EasyPasswordConfigs {
 
     public String telegramBotToken();
 
-    public String telegramChatId();
+    public Long telegramChatId();
 
     @WithDefault("secretKey123")
     public String passPhrase();

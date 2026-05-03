@@ -2,9 +2,15 @@ package com.github.tiagolofi.rest;
 
 import java.util.Set;
 
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+
 import com.github.tiagolofi.authentication.jwt.Hashing;
 import com.github.tiagolofi.authentication.jwt.TokenJwt;
+import com.github.tiagolofi.authentication.totp.Totp;
+import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
+import com.github.tiagolofi.repository.Codes;
+import com.github.tiagolofi.repository.CodesRepository;
 
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -32,6 +38,16 @@ public class Login {
     @Inject
     EasyPasswordConfigs configs;
 
+    @Inject
+    @RestClient
+    Telegram telegram;
+
+    @Inject
+    Totp totp;
+
+    @Inject
+    CodesRepository codesRepository;
+
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
         public static native TemplateInstance login();
@@ -45,6 +61,16 @@ public class Login {
     }
 
     @POST
+    @PermitAll
+    @Path("/totp")
+    public Response generateTotp() {
+        String codigo = totp.getTotp();
+        codesRepository.persist(new Codes(codigo));
+        telegram.send(configs.telegramBotToken(), configs.telegramChatId(), "Seu código de autenticação é: " + codigo);
+        return Response.status(Response.Status.OK).build();
+    }
+
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @PermitAll
@@ -54,8 +80,7 @@ public class Login {
             
             switch (authMethod) {
                 case TOTP:
-                    // TODO: Validar TOTP
-                    return null;
+                    return loginTotp(loginRequest, configs.telegramChatId());
                 case PASSWORD:
                     return loginPassword(loginRequest);
                 default:
@@ -71,6 +96,24 @@ public class Login {
                 .entity("{\"error\": \"Erro ao fazer login\"}")
                 .build();
         }
+    }
+
+    private Response loginTotp(LoginRequest loginRequest, Long chatId) {
+        Codes codeRecord = codesRepository.findAll().stream()
+            .filter(c -> c.code().equals(loginRequest.totp))
+            .findFirst()
+            .orElse(null);
+
+        if (codeRecord != null) {
+            codesRepository.delete(codeRecord);
+            return Response.status(Response.Status.OK)
+                .entity(tokenJwt.getToken(String.format("telegramUser%s", chatId), Set.of(configs.adminRoles())))
+                .build();
+        }
+
+        return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("{\"error\": \"Código TOTP inválido\"}")
+                .build();
     }
 
     private Response loginPassword(LoginRequest loginRequest) {

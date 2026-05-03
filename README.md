@@ -19,3 +19,17 @@ Palavra secreta para encriptar as senhas nos payloads
 - Par de chaves RSA
 private.key=MIIJQwIBAD
 public.key=MIICIjANBgk
+
+## Conceitos envolvidos neste projeto
+
+- DDD para desacoplamento de bancos de dados (InMemory)
+- Hashing e Criptografia
+- Autenticação com JWT (Encriptação, Decriptação e Papéis de Acesso)
+- One Time Password (TOTP)
+- Segurança Adaptativa
+
+## Ideias para evoluir
+
+- Armazenamento seguro de senhas
+- Análise de risco no login
+- 

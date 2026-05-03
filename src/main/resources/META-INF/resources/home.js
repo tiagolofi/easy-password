@@ -104,6 +104,62 @@ async function copyToClipboard(service) {
     }
 }
 
+// ===== ADD NEW ITEM =====
+function addNewItem() {
+    openModal();
+    // Limpar dados de edição
+    document.getElementById('add-item-form').dataset.editService = '';
+}
+
+// ===== EDIT ITEM =====
+function editItem(service) {
+    const card = document.querySelector(`[data-service="${service}"]`);
+    const password = card.dataset.password;
+
+    // Preencher formulário com dados
+    document.getElementById('service-input').value = service;
+    document.getElementById('password-input').value = password;
+
+    // Abrir modal
+    openModal();
+
+    // Armazenar service para atualização
+    const form = document.getElementById('add-item-form');
+    form.dataset.editService = service;
+}
+
+// ===== DELETE ITEM =====
+function deleteItem(service) {
+    const card = document.querySelector(`[data-service="${service}"]`);
+
+    if (confirm(`Tem certeza que deseja deletar "${service}"?`)) {
+        // Remover do DOM
+        card.remove();
+
+        // Aqui você enviaria requisição para servidor
+        // deleteItemFromServer(service);
+
+        // Verificar se está vazio
+        const container = document.getElementById('items-container');
+        if (container.children.length === 0) {
+            renderEmptyState();
+        }
+    }
+}
+
+// ===== RENDER EMPTY STATE =====
+function renderEmptyState() {
+    const container = document.getElementById('items-container');
+    container.innerHTML = `
+        <div class="empty-state">
+            <span class="empty-state-icon">📭</span>
+            <p class="empty-state-text">Nenhum serviço cadastrado</p>
+            <p class="empty-state-subtext">Comece a adicionar suas senhas agora</p>
+            <button class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
+        </div>
+    `;
+}
+
 // ===== PIN MODAL =====
 function openPinModal(service, encryptedPassword) {
     const modal = document.getElementById('pin-modal');

@@ -4,6 +4,12 @@
 # Enviroment
 .env
 
+# Secrets
+*.key
+*.pem
+*.p12
+*.jks
+
 # Log file
 *.log
 

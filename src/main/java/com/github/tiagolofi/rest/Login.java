@@ -24,8 +24,8 @@ public class Login {
     @GET
     @Produces(MediaType.TEXT_HTML)
     @PermitAll
-    public TemplateInstance loginPage() {
-        return Templates.login();
+    public String loginPage() {
+        return Templates.login().render();
     }
 
     @POST

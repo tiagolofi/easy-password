@@ -30,17 +30,17 @@
                 <div id="items-container" class="items-container">
                     {#if items.size > 0}
                         {#each items}
-                            <div class="item-card" data-index="{count.index}">
+                            <div class="item-card" data-service="{it.service}">
                                 <div class="item-header">
                                     <div class="item-service">
                                         <span class="service-icon">🔒</span>
                                         <span>{it.service}</span>
                                     </div>
                                     <div class="item-actions">
-                                        <button class="item-action-btn" onclick="editItem('{count.index}')" title="Editar">
+                                        <button class="item-action-btn" onclick="editItem('{it.service}')" title="Editar">
                                             ✏️ Editar
                                         </button>
-                                        <button class="item-action-btn" onclick="deleteItem('{count.index}')" title="Deletar">
+                                        <button class="item-action-btn" onclick="deleteItem('{it.service}')" title="Deletar">
                                             🗑️ Deletar
                                         </button>
                                     </div>
@@ -49,18 +49,18 @@
                                 <div class="item-password-section">
                                     <label class="password-label">Senha</label>
                                     <div class="password-container">
-                                        <div class="password-display" id="password-{count.index}">
-                                            <span class="password-hidden" id="password-text-{count.index}">••••••••</span>
+                                        <div class="password-display" id="password-{it.service}">
+                                            <span class="password-hidden" id="password-text-{it.service}">••••••••</span>
                                         </div>
-                                        <button type="button" class="toggle-visibility" id="toggle-{count.index}" onclick="togglePasswordVisibility('{count.index}')" title="Mostrar/Ocultar">
+                                        <button type="button" class="toggle-visibility" id="toggle-{it.service}" onclick="togglePasswordVisibility('{it.service}')" title="Mostrar/Ocultar">
                                             👁️
                                         </button>
-                                        <button type="button" class="copy-btn" onclick="copyToClipboard('{count.index}')" title="Copiar para Área de Transferência">
+                                        <button type="button" class="copy-btn" onclick="copyToClipboard('{it.service}')" title="Copiar para Área de Transferência">
                                             📋
                                         </button>
                                     </div>
                                 </div>
-                                <input type="hidden" id="password-value-{count.index}" value="{it.password}">
+                                <input type="hidden" id="password-value-{it.service}" value="{it.password}">
                             </div>
                         {/each}
                     {#else}
@@ -71,6 +71,7 @@
                             <button class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
                         </div>
                     {/else}
+                    {/if}
                 </div>
             </section>
         </main>

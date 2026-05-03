@@ -7,6 +7,7 @@ import com.github.tiagolofi.repository.Item;
 
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.GET;
@@ -25,14 +26,14 @@ public class Home {
     
     @GET
     @Produces(MediaType.TEXT_HTML)
-    @RolesAllowed("user")
-    public TemplateInstance homePage() {
+    @PermitAll()
+    public String homePage() {
         // TODO: Buscar items do banco de dados/repositório do usuário autenticado
         List<Item> items = new ArrayList<>();
         items.add(new Item("Gmail", "teste"));
         items.add(new Item("GitHub", "teste"));
         items.add(new Item("Netflix", "teste"));
         
-        return Templates.home(items);
+        return Templates.home(items).render();
     }
 }

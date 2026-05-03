@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializePasswords() {
     const itemCards = document.querySelectorAll('.item-card');
     itemCards.forEach((card) => {
-        const index = card.dataset.index;
-        const passwordInput = document.getElementById(`password-value-${index}`);
+        const service = card.dataset.service;
+        const passwordInput = document.getElementById(`password-value-${service}`);
         if (passwordInput) {
             const password = passwordInput.value;
             card.dataset.password = password;
@@ -21,10 +21,10 @@ function initializePasswords() {
 }
 
 // ===== TOGGLE PASSWORD VISIBILITY =====
-function togglePasswordVisibility(index) {
-    const card = document.querySelector(`[data-index="${index}"]`);
-    const passwordText = document.getElementById(`password-text-${index}`);
-    const toggleBtn = document.getElementById(`toggle-${index}`);
+function togglePasswordVisibility(service) {
+    const card = document.querySelector(`[data-service="${service}"]`);
+    const passwordText = document.getElementById(`password-text-${service}`);
+    const toggleBtn = document.getElementById(`toggle-${service}`);
     const isVisible = card.dataset.visible === 'true';
     const password = card.dataset.password;
 
@@ -42,10 +42,10 @@ function togglePasswordVisibility(index) {
 }
 
 // ===== COPY TO CLIPBOARD =====
-async function copyToClipboard(index) {
-    const card = document.querySelector(`[data-index="${index}"]`);
+async function copyToClipboard(service) {
+    const card = document.querySelector(`[data-service="${service}"]`);
     const password = card.dataset.password;
-    const copyBtn = document.querySelector(`[onclick="copyToClipboard('${index}')"]`);
+    const copyBtn = document.querySelector(`[onclick="copyToClipboard('${service}')"]`);
 
     try {
         await navigator.clipboard.writeText(password);
@@ -69,13 +69,12 @@ async function copyToClipboard(index) {
 function addNewItem() {
     openModal();
     // Limpar dados de edição
-    document.getElementById('add-item-form').dataset.editIndex = '';
+    document.getElementById('add-item-form').dataset.editService = '';
 }
 
 // ===== EDIT ITEM =====
-function editItem(index) {
-    const card = document.querySelector(`[data-index="${index}"]`);
-    const service = card.querySelector('.item-service span:last-child').textContent;
+function editItem(service) {
+    const card = document.querySelector(`[data-service="${service}"]`);
     const password = card.dataset.password;
 
     // Preencher formulário com dados
@@ -85,22 +84,21 @@ function editItem(index) {
     // Abrir modal
     openModal();
 
-    // Armazenar índice para atualização
+    // Armazenar service para atualização
     const form = document.getElementById('add-item-form');
-    form.dataset.editIndex = index;
+    form.dataset.editService = service;
 }
 
 // ===== DELETE ITEM =====
-function deleteItem(index) {
-    const card = document.querySelector(`[data-index="${index}"]`);
-    const service = card.querySelector('.item-service span:last-child').textContent;
+function deleteItem(service) {
+    const card = document.querySelector(`[data-service="${service}"]`);
 
     if (confirm(`Tem certeza que deseja deletar "${service}"?`)) {
         // Remover do DOM
         card.remove();
 
         // Aqui você enviaria requisição para servidor
-        // deleteItemFromServer(index);
+        // deleteItemFromServer(service);
 
         // Verificar se está vazio
         const container = document.getElementById('items-container');
@@ -136,7 +134,7 @@ function closeModal() {
 
     // Limpar formulário
     document.getElementById('add-item-form').reset();
-    document.getElementById('add-item-form').dataset.editIndex = '';
+    document.getElementById('add-item-form').dataset.editService = '';
 }
 
 // Fechar modal ao clicar fora
@@ -152,7 +150,7 @@ function submitNewItem(event) {
 
     const service = document.getElementById('service-input').value.trim();
     const password = document.getElementById('password-input').value;
-    const editIndex = event.target.dataset.editIndex;
+    const editService = event.target.dataset.editService;
 
     if (!service) {
         alert('Digite o nome do serviço');
@@ -166,12 +164,12 @@ function submitNewItem(event) {
 
     const newItem = { service, password };
 
-    if (editIndex === '' || editIndex === undefined) {
+    if (editService === '' || editService === undefined) {
         // Adicionar novo item
         addItemToServer(newItem);
     } else {
         // Atualizar item existente
-        updateItemOnServer(editIndex, newItem);
+        updateItemOnServer(editService, newItem);
     }
 
     closeModal();
@@ -200,9 +198,9 @@ async function addItemToServer(item) {
     }
 }
 
-async function updateItemOnServer(index, item) {
+async function updateItemOnServer(service, item) {
     try {
-        const response = await fetch(`/api/items/${index}`, {
+        const response = await fetch(`/api/items/${encodeURIComponent(service)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -222,9 +220,9 @@ async function updateItemOnServer(index, item) {
     }
 }
 
-async function deleteItemFromServer(index) {
+async function deleteItemFromServer(service) {
     try {
-        const response = await fetch(`/api/items/${index}`, {
+        const response = await fetch(`/api/items/${encodeURIComponent(service)}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

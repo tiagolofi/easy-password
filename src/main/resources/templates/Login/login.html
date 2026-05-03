@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Password - Login</title>
+    <link rel="stylesheet" href="/login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-wrapper">
+            <!-- Stage 1: Method Selection -->
+            <div id="stage-selection" class="stage active">
+                <div class="logo-area">
+                    <div class="logo-icon">🔐</div>
+                    <h1>Easy Password</h1>
+                </div>
+                
+                <div class="method-selector">
+                    <p class="method-title">Escolha seu método de autenticação</p>
+                    
+                    <div class="methods-grid">
+                        <button class="method-btn" data-method="QRCODE">
+                            <div class="method-icon">📱</div>
+                            <div class="method-name">QRCODE</div>
+                            <div class="method-desc">Autenticação rápida</div>
+                        </button>
+                        
+                        <button class="method-btn" data-method="TOTP">
+                            <div class="method-icon">⏱️</div>
+                            <div class="method-name">TOTP</div>
+                            <div class="method-desc">6 dígitos</div>
+                        </button>
+                        
+                        <button class="method-btn" data-method="SENHA">
+                            <div class="method-icon">🔑</div>
+                            <div class="method-name">SENHA</div>
+                            <div class="method-desc">Tradicional</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 2: QRCODE Login -->
+            <div id="stage-qrcode" class="stage">
+                <div class="back-button">
+                    <button class="btn-back" onclick="goBack()">← Voltar</button>
+                </div>
+                
+                <div class="form-container">
+                    <h2>Autenticação QRCODE</h2>
+                    
+                    <div class="qrcode-display">
+                        <div class="qrcode-placeholder">
+                            <div class="qrcode-loading">Gerando QR Code...</div>
+                            <!-- QR Code será inserido aqui via JavaScript -->
+                            <canvas id="qrcode-canvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <p class="qrcode-hint">Escaneie o código QR com seu autenticador</p>
+                    
+                    <button class="btn-primary" onclick="submitQRCode()">Confirmar</button>
+                </div>
+            </div>
+
+            <!-- Stage 3: TOTP Login -->
+            <div id="stage-totp" class="stage">
+                <div class="back-button">
+                    <button class="btn-back" onclick="goBack()">← Voltar</button>
+                </div>
+                
+                <div class="form-container">
+                    <h2>Autenticação TOTP</h2>
+                    
+                    <form id="totp-form" onsubmit="submitTOTP(event)">
+                        <div class="form-group">
+                            <label for="totp-input">Digite os 6 dígitos</label>
+                            <input 
+                                type="text" 
+                                id="totp-input" 
+                                name="totp" 
+                                placeholder="000000"
+                                maxlength="6"
+                                pattern="[0-9]{6}"
+                                required
+                                inputmode="numeric"
+                                autocomplete="off"
+                            >
+                            <div class="input-underline"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary">Entrar</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Stage 4: Password Login -->
+            <div id="stage-senha" class="stage">
+                <div class="back-button">
+                    <button class="btn-back" onclick="goBack()">← Voltar</button>
+                </div>
+                
+                <div class="form-container">
+                    <h2>Autenticação por Senha</h2>
+                    
+                    <form id="password-form" onsubmit="submitPassword(event)">
+                        <div class="form-group">
+                            <label for="username-input">Usuário</label>
+                            <input 
+                                type="text" 
+                                id="username-input" 
+                                name="username" 
+                                placeholder="seu usuário"
+                                required
+                                autocomplete="username"
+                            >
+                            <div class="input-underline"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password-input">Senha</label>
+                            <div class="password-wrapper">
+                                <input 
+                                    type="password" 
+                                    id="password-input" 
+                                    name="password" 
+                                    placeholder="sua senha"
+                                    required
+                                    autocomplete="current-password"
+                                >
+                                <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                                    <span id="eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            <div class="input-underline"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary">Entrar</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="error-message"></div>
+        </div>
+    </div>
+
+    <script src="/login.js"></script>
+</body>
+</html>

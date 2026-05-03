@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Password - Home</title>
+    <link rel="stylesheet" href="/home.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <div class="logo-icon-header">🔐</div>
+                    <h1>Easy Password</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-logout" onclick="logout()">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="items-section">
+                <div class="section-header">
+                    <h2>Seus Serviços</h2>
+                    <button class="btn-add-item" onclick="addNewItem()">+ Adicionar</button>
+                </div>
+
+                <div id="items-container" class="items-container">
+                    {#if items.size > 0}
+                        {#each items}
+                            <div class="item-card" data-index="{count.index}">
+                                <div class="item-header">
+                                    <div class="item-service">
+                                        <span class="service-icon">🔒</span>
+                                        <span>{it.service}</span>
+                                    </div>
+                                    <div class="item-actions">
+                                        <button class="item-action-btn" onclick="editItem('{count.index}')" title="Editar">
+                                            ✏️ Editar
+                                        </button>
+                                        <button class="item-action-btn" onclick="deleteItem('{count.index}')" title="Deletar">
+                                            🗑️ Deletar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="item-password-section">
+                                    <label class="password-label">Senha</label>
+                                    <div class="password-container">
+                                        <div class="password-display" id="password-{count.index}">
+                                            <span class="password-hidden" id="password-text-{count.index}">••••••••</span>
+                                        </div>
+                                        <button type="button" class="toggle-visibility" id="toggle-{count.index}" onclick="togglePasswordVisibility('{count.index}')" title="Mostrar/Ocultar">
+                                            👁️
+                                        </button>
+                                        <button type="button" class="copy-btn" onclick="copyToClipboard('{count.index}')" title="Copiar para Área de Transferência">
+                                            📋
+                                        </button>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="password-value-{count.index}" value="{it.password}">
+                            </div>
+                        {/each}
+                    {#else}
+                        <div class="empty-state">
+                            <span class="empty-state-icon">📭</span>
+                            <p class="empty-state-text">Nenhum serviço cadastrado</p>
+                            <p class="empty-state-subtext">Comece a adicionar suas senhas agora</p>
+                            <button class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
+                        </div>
+                    {/else}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal para adicionar novo item -->
+    <div id="add-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Novo Serviço</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="add-item-form" onsubmit="submitNewItem(event)">
+                <div class="form-group">
+                    <label for="service-input">Nome do Serviço</label>
+                    <input 
+                        type="text" 
+                        id="service-input" 
+                        name="service" 
+                        placeholder="ex: Gmail, GitHub, etc"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password-input">Senha</label>
+                    <input 
+                        type="password" 
+                        id="password-input" 
+                        name="password" 
+                        placeholder="Digite a senha"
+                        required
+                    >
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/home.js"></script>
+</body>
+</html>

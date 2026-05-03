@@ -243,16 +243,18 @@ async function deleteItemFromServer(service) {
 
 // ===== LOGOUT =====
 function logout() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        // Aqui você faria logout no servidor
-        fetch('/logout', { method: 'POST' })
-            .then(() => {
-                window.location.href = '/login';
-            })
-            .catch(() => {
-                window.location.href = '/login';
-            });
-    }
+    // Aqui você faria logout no servidor
+    document.cookie = 'Authorization=; path=/; Max-Age=0;';
+    fetch('/logout', { method: 'POST' })
+        .then(() => {
+            window.location.href = '/login';
+        })
+        .catch(() => {
+            window.location.href = '/login';
+        });
+    // if (confirm('Tem certeza que deseja sair?')) {
+        
+    // }
 }
 
 // ===== UTILITIES =====

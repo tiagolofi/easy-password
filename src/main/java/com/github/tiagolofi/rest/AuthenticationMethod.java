@@ -11,7 +11,7 @@ public enum AuthenticationMethod {
         this.method = method;
     }
 
-    public static AuthenticationMethod fromMethod(String method) {
+    public static AuthenticationMethod fromMethod(String method) throws IllegalArgumentException {
         for (AuthenticationMethod m : AuthenticationMethod.values()) {
             if (m.method.equalsIgnoreCase(method)) {
                 return m;

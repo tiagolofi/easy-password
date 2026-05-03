@@ -126,7 +126,7 @@ function submitQRCode() {
     
     // Simular envio para servidor
     setTimeout(() => {
-        submitLogin('QRCODE');
+        submitLogin('qrcode');
     }, 500);
 }
 
@@ -154,7 +154,7 @@ function submitTOTP(event) {
     showError('');
     
     // Validar TOTP no servidor
-    submitLogin('TOTP', { totp });
+    submitLogin('totp', { totp });
 }
 
 // Formatação automática de entrada TOTP
@@ -195,7 +195,7 @@ function submitPassword(event) {
     showError('');
     
     // Validar credenciais no servidor
-    submitLogin('SENHA', { username, password });
+    submitLogin('password', { username, password });
 }
 
 function togglePasswordVisibility() {
@@ -233,9 +233,14 @@ function submitLogin(method, data = {}) {
         }
         return response.text();
     })
-    .then(data => {
-        console.log('Login bem-sucedido:', data);
+    .then(token => {
+        if (!token) {
+            throw new Error('Credenciais inválidas');
+        }
+        console.log('Login bem-sucedido!');
         // Redirecionar para home
+        document.cookie = `Authorization=${token}; path=/; secure; SameSite=Lax`;
+    
         window.location.href = '/home';
     })
     .catch(error => {

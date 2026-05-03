@@ -26,7 +26,7 @@ public class Home {
     
     @GET
     @Produces(MediaType.TEXT_HTML)
-    @PermitAll()
+    @RolesAllowed({"user"})
     public TemplateInstance homePage() {
         // TODO: Buscar items do banco de dados/repositório do usuário autenticado
         List<Item> items = new ArrayList<>();

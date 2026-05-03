@@ -17,7 +17,7 @@ public class TokenJwt {
             .upn(upn)
             .groups(roles)
             .claim("createdAt", LocalDateTime.now(ZoneId.of("America/Sao_Paulo")))
-            .expiresIn(Duration.ofMinutes(5))
+            .expiresIn(Duration.ofHours(1))
             .innerSign()
             .encrypt();
     }

@@ -21,4 +21,7 @@ public interface EasyPasswordConfigs {
 
     @WithDefault("secretKey123")
     public String passPhrase();
+
+    @WithDefault("1234")
+    public String pin();
 }

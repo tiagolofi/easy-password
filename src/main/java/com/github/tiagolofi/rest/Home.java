@@ -7,6 +7,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.jwt.Hashing;
 import com.github.tiagolofi.authentication.jwt.PassPhraseCipher;
+import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.Item;
 import com.github.tiagolofi.repository.ItemRepository;
 
@@ -37,6 +38,9 @@ public class Home {
 
     @Inject
     Hashing hashing;
+
+    @Inject
+    EasyPasswordConfigs configs;
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
@@ -83,7 +87,7 @@ public class Home {
     @Path("/view")
     @Produces(MediaType.TEXT_PLAIN)
     public Response viewPassword(@RestQuery String encryptedPassword, @RestQuery String pin) throws Exception {
-        if (hashing.sha256("1111").equals(pin)) {
+        if (hashing.sha256(configs.pin()).equals(pin)) {
             return Response.ok(passPhraseCipher.decrypt(encryptedPassword)).build();
         }
 

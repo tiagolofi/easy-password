@@ -185,7 +185,7 @@ async function validatePinAndDecrypt(event) {
                     viewBtn.classList.remove('active');
                     card.dataset.showing_original = 'false';
                 }
-            }, 5000);
+            }, 10000);
 
         } else {
             alert('PIN inválido');
@@ -222,3 +222,19 @@ document.addEventListener('keydown', function(event) {
         closePinModal(); // ✅ importante
     }
 });
+
+// ===== LOGOUT =====
+function logout() {
+    // Aqui você faria logout no servidor
+    document.cookie = 'Authorization=; path=/; Max-Age=0;';
+    fetch('/logout', { method: 'POST' })
+        .then(() => {
+            window.location.href = '/login';
+        })
+        .catch(() => {
+            window.location.href = '/login';
+        });
+    // if (confirm('Tem certeza que deseja sair?')) {
+        
+    // }
+}

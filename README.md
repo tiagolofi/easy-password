@@ -13,8 +13,8 @@ Trava do dispositivo no telegram
 Token do Telegram
 - easy.password.telegram.bot-token=bot........................
 
-Palavra secreta para encriptar as senhas nos payloads
-- easy.password.pass.phrase=secret1234567890
+Palavra secreta para encriptar as senhas nos payloads (16 bytes)
+- easy.password.pass.phrase=secret1234567890 
 
 - Par de chaves RSA
 private.key=MIIJQwIBAD
@@ -32,4 +32,5 @@ public.key=MIICIjANBgk
 
 - Armazenamento seguro de senhas
 - Análise de risco no login
-- 
+- Counter de PIN Incorreto
+- Autenticação com Padrão, QRCODE ou Facial

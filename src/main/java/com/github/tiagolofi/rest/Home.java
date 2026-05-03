@@ -27,13 +27,13 @@ public class Home {
     @GET
     @Produces(MediaType.TEXT_HTML)
     @PermitAll()
-    public String homePage() {
+    public TemplateInstance homePage() {
         // TODO: Buscar items do banco de dados/repositório do usuário autenticado
         List<Item> items = new ArrayList<>();
         items.add(new Item("Gmail", "teste"));
         items.add(new Item("GitHub", "teste"));
         items.add(new Item("Netflix", "teste"));
         
-        return Templates.home(items).render();
+        return Templates.home(items);
     }
 }

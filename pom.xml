@@ -52,7 +52,7 @@
         <!-- QUTE -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-qute</artifactId>
+            <artifactId>quarkus-rest-qute</artifactId>
         </dependency>
         <!-- Fault Tolerance -->
         <dependency>
@@ -76,7 +76,7 @@
         <!-- Testes -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5-mockito</artifactId>
+            <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

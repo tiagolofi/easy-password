@@ -1,8 +1,10 @@
 package com.github.tiagolofi.rest;
 
 import io.quarkus.qute.CheckedTemplate;
+import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -22,10 +24,10 @@ public class Login {
     }
     
     @GET
-    @Produces(MediaType.TEXT_HTML)
     @PermitAll
-    public String loginPage() {
-        return Templates.login().render();
+    @Produces(MediaType.TEXT_HTML)
+    public TemplateInstance getLogin() {
+        return Templates.login();
     }
 
     @POST

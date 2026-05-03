@@ -1,13 +1,14 @@
 package com.github.tiagolofi.rest;
 
+import java.util.Set;
+
+import com.github.tiagolofi.authentication.jwt.Hashing;
 import com.github.tiagolofi.authentication.jwt.TokenJwt;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 
 import io.quarkus.qute.CheckedTemplate;
-import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -24,6 +25,9 @@ public class Login {
 
     @Inject
     TokenJwt tokenJwt;
+
+    @Inject
+    Hashing hashing;
 
     @Inject
     EasyPasswordConfigs configs;
@@ -48,7 +52,6 @@ public class Login {
         try {
             AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method);
             
-            // TODO: Implementar autenticação real com JWT
             switch (authMethod) {
                 case QRCODE:
                     // TODO: Validar QR Code scaneado
@@ -57,7 +60,6 @@ public class Login {
                     // TODO: Validar TOTP
                     return null;
                 case PASSWORD:
-                    // TODO: Validar usuário e senha
                     return loginPassword(loginRequest);
                 default:
                     throw new IllegalArgumentException("Método de autenticação inválido");
@@ -75,18 +77,16 @@ public class Login {
     }
 
     private Response loginPassword(LoginRequest loginRequest) {
-        if (loginRequest.username == null || loginRequest.password == null) {
-            return Response.status(Response.Status.UNAUTHORIZED)
+        String hashedPassword = hashing.sha256(configs.adminPassword());
+
+        if (configs.admin().equals(loginRequest.username) && hashedPassword.equals(loginRequest.password)) {
+            return Response.status(Response.Status.OK)
+                .entity(tokenJwt.getToken(loginRequest.username, Set.of(configs.adminRoles())))
+                .build();
+        }
+
+        return Response.status(Response.Status.UNAUTHORIZED)
                 .entity("{\"error\": \"Usuário ou senha inválidos\"}")
                 .build();
-        }
-
-        if (configs.admin().equals(loginRequest.username) && configs.adminPassword().equals(loginRequest.password)) {
-            return Response.status(Response.Status.OK)
-                .entity(tokenJwt.getToken())
-                .build();
-        }
-
-        return null;
     }
 }

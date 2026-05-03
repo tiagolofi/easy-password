@@ -9,4 +9,6 @@ public interface EasyPasswordConfigs {
     public String admin();
     @WithDefault("admin123")
     public String adminPassword();
+    @WithDefault("admin,user")
+    public String[] adminRoles();
 }

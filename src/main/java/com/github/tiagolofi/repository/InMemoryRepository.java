@@ -1,6 +1,8 @@
 package com.github.tiagolofi.repository;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,12 +16,20 @@ public abstract class InMemoryRepository<T> {
         return id;
     }
 
+    public List<UUID> persistAll(List<T> values) {
+        List<UUID> ids = new ArrayList<>();
+        for (T value : values) {
+            ids.add(persist(value));
+        }
+        return ids;
+    }
+
     public T find(UUID id) {
         return this.data.get(id);
     }
 
-    public Map<UUID, T> findAll() {
-        return this.data;
+    public List<T> findAll() {
+        return new ArrayList<>(this.data.values());
     }
 
 }

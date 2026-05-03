@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.github.tiagolofi.repository.Item;
+import com.github.tiagolofi.repository.ItemRepository;
 
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -18,6 +19,9 @@ import jakarta.ws.rs.core.MediaType;
 @RequestScoped
 @Path("/home")
 public class Home {
+
+    @Inject
+    ItemRepository itemRepository;
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
@@ -34,6 +38,8 @@ public class Home {
         items.add(new Item("GitHub", "teste"));
         items.add(new Item("Netflix", "teste"));
         
-        return Templates.home(items);
+        itemRepository.persistAll(items);
+
+        return Templates.home(itemRepository.findAll());
     }
 }

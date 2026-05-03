@@ -171,31 +171,47 @@ document.getElementById('password-form')?.addEventListener('submit', function(e)
     submitPassword(e);
 });
 
+async function sha256(texto) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(texto);
+
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return hashHex;
+}
+
 function submitPassword(event) {
     if (event) {
         event.preventDefault();
     }
     
     const username = document.getElementById('username-input').value.trim();
-    const password = document.getElementById('password-input').value;
-    
-    if (!username) {
-        showError('Digite seu usuário');
-        document.getElementById('username-input').focus();
-        return;
-    }
-    
-    if (!password) {
-        showError('Digite sua senha');
-        document.getElementById('password-input').focus();
-        return;
-    }
-    
-    disableButton('.btn-primary');
-    showError('');
-    
-    // Validar credenciais no servidor
-    submitLogin('password', { username, password });
+
+    sha256(document.getElementById('password-input').value).then(password => {
+        if (!username) {
+            showError('Digite seu usuário');
+            document.getElementById('username-input').focus();
+            return;
+        }
+
+        if (!password) {
+            showError('Digite sua senha');
+            document.getElementById('password-input').focus();
+            return;
+        }
+
+        disableButton('.btn-primary');
+        showError('');
+
+        // Validar credenciais no servidor
+        submitLogin('password', { username, password });
+    });
+
 }
 
 function togglePasswordVisibility() {

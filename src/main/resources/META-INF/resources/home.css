@@ -115,6 +115,22 @@ body {
     color: var(--text-light);
 }
 
+.copy-feedback {
+    position: absolute;
+    right: 10px;
+    top: -25px;
+    font-size: 12px;
+    color: #9cff57;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: all 0.3s ease;
+}
+
+.copy-feedback.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .btn-logout,
 .btn-add-item {
     padding: 11px 20px;

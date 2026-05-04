@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initializePasswords();
 
-    // ===== 🔥 FIX PRINCIPAL (PIN FORM) =====
     const pinForm = document.getElementById('pin-form');
     if (pinForm) {
         pinForm.addEventListener('submit', validatePinAndDecrypt);
@@ -67,18 +66,41 @@ function initializePasswords() {
 }
 
 // ===== COPY =====
-async function copyToClipboard(service) {
-    const card = document.querySelector(`[data-service="${service}"]`);
-    if (!card) return;
+function showCopiedMessage(element) {
+    // cria o elemento
+    const msg = document.createElement('span');
+    msg.textContent = 'Copiado!';
+    msg.className = 'copy-feedback';
 
-    const actualPasswordInput = document.getElementById(`password-value-${service}`);
+    // adiciona no DOM (próximo ao input)
+    element.parentElement.appendChild(msg);
+
+    // animação de entrada
+    setTimeout(() => {
+        msg.classList.add('show');
+    }, 10);
+
+    // remove depois
+    setTimeout(() => {
+        msg.classList.remove('show');
+        setTimeout(() => msg.remove(), 300);
+    }, 1500);
+}
+
+async function copyToClipboard(service) {
+    const input = document.getElementById(`password-text-${service}`);
+    if (!input) return;
 
     try {
-        await navigator.clipboard.writeText(actualPasswordInput.value);
-        alert('Copiado!');
+        // 🔑 pega o valor atual do input
+        const value = input.value || input.textContent;
+
+        await navigator.clipboard.writeText(value);
+
+        showCopiedMessage(input);
+
     } catch (error) {
         console.error(error);
-        alert('Erro ao copiar');
     }
 }
 
@@ -108,21 +130,14 @@ function editItem(service) {
 
 // ===== DELETE ITEM =====
 function deleteItem(service) {
-    const card = document.querySelector(`[data-service="${service}"]`);
+    deleteItemFromServer(service);
+}
 
-    // Remover do DOM
-    card.remove();
-    // Aqui você enviaria requisição para servidor
-    // deleteItemFromServer(service);
-    // Verificar se está vazio
-    const container = document.getElementById('items-container');
-    if (container.children.length === 0) {
-        renderEmptyState();
-    }
-
-    // if (confirm(`Tem certeza que deseja deletar "${service}"?`)) {
-
-    // }
+function normalizeService(service) {
+    return service
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]/g, '');
 }
 
 // ===== SUBMIT NEW ITEM =====
@@ -133,19 +148,9 @@ function submitNewItem(event) {
     const password = document.getElementById('password-input').value;
     const editService = event.target.dataset.editService;
 
-    if (!service) {
-        alert('Digite o nome do serviço');
-        return;
-    }
-
-    if (!password) {
-        alert('Digite a senha');
-        return;
-    }
-
     const newItem = { service, password };
 
-    if (editService === '' || editService === undefined) {
+    if (!editService) {
         // Adicionar novo item
         addItemToServer(newItem);
     } else {
@@ -159,7 +164,7 @@ function submitNewItem(event) {
 // ===== SERVER OPERATIONS =====
 async function addItemToServer(item) {
     try {
-        const response = await fetch('/api/items', {
+        const response = await fetch('/home/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -181,13 +186,15 @@ async function addItemToServer(item) {
 
 async function updateItemOnServer(service, item) {
     try {
-        const response = await fetch(`/api/items/${encodeURIComponent(service)}`, {
+        const response = await fetch('/home/edit', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(item)
         });
+
+        console.log('Resposta do servidor:', response);
 
         if (!response.ok) {
             throw new Error('Erro ao atualizar item');
@@ -203,11 +210,12 @@ async function updateItemOnServer(service, item) {
 
 async function deleteItemFromServer(service) {
     try {
-        const response = await fetch(`/api/items/${encodeURIComponent(service)}`, {
+        const response = await fetch('/home/delete', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({ service: service })
         });
 
         if (!response.ok) {

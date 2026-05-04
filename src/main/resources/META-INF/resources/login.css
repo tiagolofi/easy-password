@@ -267,6 +267,19 @@ body {
     align-items: center;
 }
 
+/* Botão com ícone dentro */
+.password-wrapper button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9cff57;
+    cursor: pointer;
+    font-size: 16px;
+}
+
 .password-wrapper input {
     width: 100%;
     padding-right: 45px;

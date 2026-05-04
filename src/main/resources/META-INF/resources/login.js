@@ -24,16 +24,25 @@ function goBack() {
     showStage('selection');
 }
 
+async function sha256(texto) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(texto);
+
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return hashHex;
+}
+
 // ===== METHOD SELECTION =====
 document.querySelectorAll('.method-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const method = this.dataset.method;
         showStage(method.toLowerCase());
-        
-        // Generate QR code if QRCODE method
-        if (method === 'QRCODE') {
-            generateQRCode();
-        }
         
         // Focus on input if TOTP
         if (method === 'TOTP') {
@@ -51,86 +60,10 @@ document.querySelectorAll('.method-btn').forEach(btn => {
     });
 });
 
-// ===== QRCODE =====
-function generateQRCode() {
-    // Simulação de geração de QR Code usando canvas
-    const canvas = document.getElementById('qrcode-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Dimensões do canvas
-    canvas.width = 200;
-    canvas.height = 200;
-    
-    // Cores
-    const darkColor = '#00FF9C';
-    const lightColor = '#1A1A1A';
-    
-    // Padrão QR Code simplificado (mock)
-    const qrPattern = generateQRPattern();
-    const cellSize = canvas.width / qrPattern.length;
-    
-    // Desenhar QR Code
-    for (let row = 0; row < qrPattern.length; row++) {
-        for (let col = 0; col < qrPattern[row].length; col++) {
-            ctx.fillStyle = qrPattern[row][col] ? darkColor : lightColor;
-            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-        }
-    }
-}
-
-function generateQRPattern() {
-    // Gera um padrão QR Code 21x21 (simplificado para fins de demonstração)
-    const size = 21;
-    const pattern = Array(size).fill(null).map(() => Array(size).fill(false));
-    
-    // Padrão de locação (position detection patterns) - cantos do QR Code
-    for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-            if (i === 0 || i === 6 || j === 0 || j === 6 || (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-                pattern[i][j] = true;
-                pattern[i][size - 1 - j] = true;
-                pattern[size - 1 - i][j] = true;
-            }
-        }
-    }
-    
-    // Separadores brancos
-    for (let i = 0; i < 8; i++) {
-        pattern[7][i] = false;
-        pattern[i][7] = false;
-        pattern[size - 8][i] = false;
-        pattern[i][size - 8] = false;
-    }
-    
-    // Padrão de timing (linhas de sincronização)
-    for (let i = 8; i < size - 8; i++) {
-        pattern[6][i] = i % 2 === 0;
-        pattern[i][6] = i % 2 === 0;
-    }
-    
-    // Dados aleatórios para preenchimento
-    for (let i = 9; i < size - 8; i++) {
-        for (let j = 9; j < size - 8; j++) {
-            if (!pattern[i][j]) {
-                pattern[i][j] = Math.random() > 0.5;
-            }
-        }
-    }
-    
-    return pattern;
-}
-
-function submitQRCode() {
-    disableButton('.btn-primary');
-    showError('');
-    
-    // Simular envio para servidor
-    setTimeout(() => {
-        submitLogin('qrcode');
-    }, 500);
-}
-
 // ===== TOTP =====
+document.getElementById('totp-input').disabled = true;
+
+// Formatação automática + envio opcional
 document.getElementById('totp-input')?.addEventListener('input', function(e) {
     const value = e.target.value.replace(/[^\d]/g, '').slice(0, 6);
     e.target.value = value;
@@ -149,52 +82,36 @@ function validarCodigoTOTP(totp) {
     submitLogin('totp', { totp });
 }
 
-function submitTOTP() {
-    const totp = document.getElementById('totp-input').value.trim();
+function enviarCodigoTOTP() {
+    document.getElementById('totp-input').disabled = false;
 
-    if (!/^\d{6}$/.test(totp)) {
-        showError('Digite 6 dígitos válidos');
-        return;
-    }
+    disableButton('.btn-primary');
+    showError('');
 
-    validarCodigoTOTP(totp);
+    fetch('/login/totp', {
+        method: 'POST'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao iniciar autenticação TOTP');
+        }
+
+        console.log('Desafio TOTP iniciado');
+
+        // Foca no input
+        document.getElementById('totp-input').focus();
+    })
+    .catch(error => {
+        showError(error.message);
+        enableButton('.btn-primary');
+    });
 }
-
-// Formatação automática de entrada TOTP
-// Formatação automática + envio opcional
-document.getElementById('totp-input')?.addEventListener('input', function(e) {
-    e.target.value = e.target.value.replace(/[^\d]/g, '').slice(0, 6);
-
-    if (e.target.value.length === 6) {
-        // Escolha um dos comportamentos:
-
-        // 👉 Opção 1 (atual): só tira o foco
-        // e.target.blur();
-
-        // 👉 Opção 2 (melhor UX): envia automaticamente
-        enviarCodigoTOTP();
-    }
-});
 
 // ===== PASSWORD =====
 document.getElementById('password-form')?.addEventListener('submit', function(e) {
     e.preventDefault();
     submitPassword(e);
 });
-
-async function sha256(texto) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(texto);
-
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  return hashHex;
-}
 
 function submitPassword(event) {
     if (event) {
@@ -231,10 +148,12 @@ function togglePasswordVisibility() {
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        eyeIcon.textContent = '👁️‍🗨️';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
     } else {
         passwordInput.type = 'password';
-        eyeIcon.textContent = '👁️';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
     }
 }
 
@@ -329,26 +248,3 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Login page loaded');
     showStage('selection');
 });
-
-function enviarCodigoTOTP() {
-    disableButton('.btn-primary');
-    showError('');
-
-    fetch('/login/totp', {
-        method: 'POST'
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Erro ao iniciar autenticação TOTP');
-        }
-
-        console.log('Desafio TOTP iniciado');
-
-        // Foca no input
-        document.getElementById('totp-input').focus();
-    })
-    .catch(error => {
-        showError(error.message);
-        enableButton('.btn-primary');
-    });
-}

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Easy Password - Login</title>
     <link rel="stylesheet" href="/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -60,7 +61,6 @@
                             <div class="input-underline"></div>
                         </div>
 
-                        <!-- NOVO BOTÃO -->
                         <button type="button" class="btn-primary" onclick="enviarCodigoTOTP()">
                             Enviar código
                         </button>
@@ -87,7 +87,9 @@
                             <label for="password-input">Senha</label>
                             <div class="password-wrapper">
                                 <input type="password" id="password-input" required>
-                                <button type="button" onclick="togglePasswordVisibility()">👁️</button>
+                                <button type="button" onclick="togglePasswordVisibility()" aria-label="Mostrar senha">
+                                    <i id="eye-icon" class="fa-regular fa-eye"></i>
+                                </button>
                             </div>
                         </div>
 

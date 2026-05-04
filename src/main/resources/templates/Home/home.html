@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Easy Password - Home</title>
     <link rel="stylesheet" href="/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="header-content">
                 <div class="header-title">
-                    <div class="logo-icon-header">🔐</div>
+                    <div class="logo-icon-header"><i class="fa-solid fa-unlock"></i></div>
                     <h1>Easy Password</h1>
                 </div>
                 <div class="header-actions">
@@ -33,15 +34,15 @@
                             <div class="item-card" data-service="{it.service}">
                                 <div class="item-header">
                                     <div class="item-service">
-                                        <span class="service-icon">🔒</span>
+                                        <span class="service-icon"><i class="fa-solid fa-key"></i></span>
                                         <span>{it.service}</span>
                                     </div>
                                     <div class="item-actions">
                                         <button type="button" class="item-action-btn" onclick="editItem('{it.service}')" title="Editar">
-                                            ✏️ Editar
+                                            <i class="fa-regular fa-pen-to-square"></i> Editar
                                         </button>
                                         <button type="button" class="item-action-btn" onclick="deleteItem('{it.service}')" title="Deletar">
-                                            🗑️ Deletar
+                                            <i class="fa-regular fa-trash-can"></i> Deletar
                                         </button>
                                     </div>
                                 </div>
@@ -52,29 +53,20 @@
                                         <div class="password-display">
                                             <span class="password-hidden" id="password-text-{it.service}">••••••••</span>
                                         </div>
-
-                                        <button type="button"
-                                                class="toggle-visibility"
-                                                id="toggle-{it.service}"
-                                                onclick="togglePasswordVisibility('{it.service}')"
-                                                title="Mostrar/Ocultar">
-                                            👁️
-                                        </button>
-
-                                        <!-- ✅ BOTÃO CORRIGIDO -->
+                                        
                                         <button type="button"
                                                 class="view-original-btn"
                                                 id="view-{it.service}"
                                                 onclick="openPinModal('{it.service}', document.getElementById('password-value-{it.service}').value)"
                                                 title="Exibir Senha Original">
-                                            🔓
+                                            <i class="fa-solid fa-lock-open"></i>
                                         </button>
 
                                         <button type="button"
                                                 class="copy-btn"
                                                 onclick="copyToClipboard('{it.service}')"
                                                 title="Copiar para Área de Transferência">
-                                            📋
+                                            <i class="fa-regular fa-copy"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -87,7 +79,7 @@
                         {/each}
                     {#else}
                         <div class="empty-state">
-                            <span class="empty-state-icon">📭</span>
+                            <span class="empty-state-icon"><i class="fa-solid fa-plus"></i></span>
                             <p class="empty-state-text">Nenhum serviço cadastrado</p>
                             <p class="empty-state-subtext">Comece a adicionar suas senhas agora</p>
                             <button type="button" class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>

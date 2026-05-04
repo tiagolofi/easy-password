@@ -66,37 +66,15 @@ function initializePasswords() {
     });
 }
 
-// ===== TOGGLE PASSWORD =====
-function togglePasswordVisibility(service) {
-    const card = document.querySelector(`[data-service="${service}"]`);
-    const passwordText = document.getElementById(`password-text-${service}`);
-    const toggleBtn = document.getElementById(`toggle-${service}`);
-
-    if (!card || !passwordText || !toggleBtn) return;
-
-    const isVisible = card.dataset.visible === 'true';
-    const encryptedPassword = card.dataset.password;
-
-    if (isVisible) {
-        passwordText.textContent = '•'.repeat(8);
-        toggleBtn.textContent = '👁️';
-        card.dataset.visible = 'false';
-    } else {
-        passwordText.textContent = encryptedPassword;
-        toggleBtn.textContent = '👁️‍🗨️';
-        card.dataset.visible = 'true';
-    }
-}
-
 // ===== COPY =====
 async function copyToClipboard(service) {
     const card = document.querySelector(`[data-service="${service}"]`);
     if (!card) return;
 
-    const encryptedPassword = card.dataset.password;
+    const actualPasswordInput = document.getElementById(`password-value-${service}`);
 
     try {
-        await navigator.clipboard.writeText(encryptedPassword);
+        await navigator.clipboard.writeText(actualPasswordInput.value);
         alert('Copiado!');
     } catch (error) {
         console.error(error);
@@ -132,18 +110,115 @@ function editItem(service) {
 function deleteItem(service) {
     const card = document.querySelector(`[data-service="${service}"]`);
 
-    if (confirm(`Tem certeza que deseja deletar "${service}"?`)) {
-        // Remover do DOM
-        card.remove();
+    // Remover do DOM
+    card.remove();
+    // Aqui você enviaria requisição para servidor
+    // deleteItemFromServer(service);
+    // Verificar se está vazio
+    const container = document.getElementById('items-container');
+    if (container.children.length === 0) {
+        renderEmptyState();
+    }
 
-        // Aqui você enviaria requisição para servidor
-        // deleteItemFromServer(service);
+    // if (confirm(`Tem certeza que deseja deletar "${service}"?`)) {
 
-        // Verificar se está vazio
-        const container = document.getElementById('items-container');
-        if (container.children.length === 0) {
-            renderEmptyState();
+    // }
+}
+
+// ===== SUBMIT NEW ITEM =====
+function submitNewItem(event) {
+    event.preventDefault();
+
+    const service = document.getElementById('service-input').value.trim();
+    const password = document.getElementById('password-input').value;
+    const editService = event.target.dataset.editService;
+
+    if (!service) {
+        alert('Digite o nome do serviço');
+        return;
+    }
+
+    if (!password) {
+        alert('Digite a senha');
+        return;
+    }
+
+    const newItem = { service, password };
+
+    if (editService === '' || editService === undefined) {
+        // Adicionar novo item
+        addItemToServer(newItem);
+    } else {
+        // Atualizar item existente
+        updateItemOnServer(editService, newItem);
+    }
+
+    closeModal();
+}
+
+// ===== SERVER OPERATIONS =====
+async function addItemToServer(item) {
+    try {
+        const response = await fetch('/api/items', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item)
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao adicionar item');
         }
+
+        // Recarregar página
+        location.reload();
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao adicionar item: ' + error.message);
+    }
+}
+
+async function updateItemOnServer(service, item) {
+    try {
+        const response = await fetch(`/api/items/${encodeURIComponent(service)}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item)
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar item');
+        }
+
+        // Recarregar página
+        location.reload();
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao atualizar item: ' + error.message);
+    }
+}
+
+async function deleteItemFromServer(service) {
+    try {
+        const response = await fetch(`/api/items/${encodeURIComponent(service)}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao deletar item');
+        }
+
+        // Recarregar página
+        location.reload();
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao deletar item: ' + error.message);
     }
 }
 
@@ -152,7 +227,7 @@ function renderEmptyState() {
     const container = document.getElementById('items-container');
     container.innerHTML = `
         <div class="empty-state">
-            <span class="empty-state-icon">📭</span>
+            <span class="empty-state-icon"><i class="fa-solid fa-plus"></i></span>
             <p class="empty-state-text">Nenhum serviço cadastrado</p>
             <p class="empty-state-subtext">Comece a adicionar suas senhas agora</p>
             <button class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
@@ -207,7 +282,6 @@ async function validatePinAndDecrypt(event) {
         const service = modal.dataset.service;
         const encryptedPassword = modal.dataset.encryptedPassword;
 
-        // ✅ UMA ÚNICA CHAMADA
         const response = await fetch(
             `/home/view?encryptedPassword=${encodeURIComponent(encryptedPassword)}&pin=${encodeURIComponent(pinHash)}`
         );
@@ -216,11 +290,7 @@ async function validatePinAndDecrypt(event) {
 
         const result = await response.text();
 
-        // ✅ BACKEND DEVE RETORNAR ASSIM:
-        // { valid: true, password: "senha_original" }
-
         if (result) {
-
             const passwordText = document.getElementById(`password-text-${service}`);
             const viewBtn = document.getElementById(`view-${service}`);
             const card = document.querySelector(`[data-service="${service}"]`);
@@ -275,7 +345,7 @@ document.addEventListener('keydown', function(event) {
 
     if (event.key === 'Escape') {
         closeModal();
-        closePinModal(); // ✅ importante
+        closePinModal();
     }
 });
 

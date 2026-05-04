@@ -142,21 +142,6 @@ function submitPassword(event) {
 
 }
 
-function togglePasswordVisibility() {
-    const passwordInput = document.getElementById('password-input');
-    const eyeIcon = document.getElementById('eye-icon');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.classList.remove('fa-eye');
-        eyeIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        eyeIcon.classList.remove('fa-eye-slash');
-        eyeIcon.classList.add('fa-eye');
-    }
-}
-
 // ===== SUBMIT LOGIN =====
 function submitLogin(method, data = {}) {
     const payload = {
@@ -184,9 +169,11 @@ function submitLogin(method, data = {}) {
             throw new Error('Credenciais inválidas');
         }
         console.log('Login bem-sucedido!');
-        // Redirecionar para home
+        
+        // Adicionando token no cookie
         document.cookie = `Authorization=${token}; path=/; secure; SameSite=Lax`;
-    
+        
+        // Redirecionar para home
         window.location.href = '/home';
     })
     .catch(error => {

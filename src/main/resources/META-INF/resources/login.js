@@ -152,7 +152,8 @@ function submitLogin(method, data = {}) {
     fetch('/login', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Content-Type': 'text/plain',
         },
         body: JSON.stringify(payload)
     })

@@ -19,7 +19,7 @@ public class Users {
 
     @POST
     @Path("/adicionar")
-    @RolesAllowed("admin")
+    // @RolesAllowed("admin")
     public Response addUser(User user) {
         try {
             userRepository.persist(user);

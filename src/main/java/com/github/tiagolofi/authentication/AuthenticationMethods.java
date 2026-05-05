@@ -15,7 +15,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class AuthenticationMethods {
     
-    private static final long EXPIRATION_TIME_SECONDS = 30L; // 30 seconds
+    private static final long EXPIRATION_TIME_SECONDS = 60L; // 60 seconds
 
     public String getToken(String upn, Set<String> roles) { 
         return Jwt
@@ -28,9 +28,10 @@ public class AuthenticationMethods {
             .encrypt();
     }
 
-    public Totp getTotp() {
+    public Totp getTotp(String username) {
         return new Totp(
             String.valueOf(99999 + new Random().nextInt(1, 900000)), 
+            username,
             new TimedValidation(EXPIRATION_TIME_SECONDS)
         ); 
     }

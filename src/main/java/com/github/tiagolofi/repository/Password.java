@@ -10,6 +10,8 @@ public class Password {
     public String value;
     public byte[] passPhrase;
     
+    public Password() {}
+
     public Password(String value) {
         // cria uma passphrase aleatória para cada senha
         this.passPhrase = new byte[16];

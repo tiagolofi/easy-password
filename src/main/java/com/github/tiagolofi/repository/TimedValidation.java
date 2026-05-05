@@ -4,11 +4,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 public class TimedValidation {
-    private final LocalDateTime date;
+    private LocalDateTime date;
 
     public TimedValidation(Long expirationTimeSeconds) {
         this.date = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusSeconds(expirationTimeSeconds);
     }
+
+    public TimedValidation() {}
 
     public LocalDateTime getExpiresAt() {
         return date;

@@ -5,5 +5,6 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 @MongoEntity(collection = "totp")
 public record Totp(
     String value,
+    String username,
     TimedValidation expiresAt
 ) {}

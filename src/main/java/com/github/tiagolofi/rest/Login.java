@@ -3,6 +3,7 @@ package com.github.tiagolofi.rest;
 import java.util.Set;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.AuthenticationMethods;
 import com.github.tiagolofi.authentication.Hashing;
@@ -10,6 +11,8 @@ import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.Totp;
 import com.github.tiagolofi.repository.TotpRepository;
+import com.github.tiagolofi.repository.User;
+import com.github.tiagolofi.repository.UserRepository;
 
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -43,6 +46,9 @@ public class Login {
 
     @Inject
     TotpRepository totpRepository;
+    
+    @Inject
+    UserRepository userRepository;
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
@@ -59,16 +65,27 @@ public class Login {
     @POST
     @PermitAll
     @Path("/totp")
-    public Response generateTotp() {
-        Totp codigo = methods.getTotp();
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response generateTotp(@RestQuery String username) {
+        // Consulta o chatId do usuário
+        User user = userRepository.find("username", username).firstResult();
+        if (user == null) {
+            return Response.status(Response.Status.FORBIDDEN)
+                .entity("Requisição não permitida.")
+                .build();
+        }
+
+        // Gera o código TOTP, salva no banco e envia para o Telegram
+        Totp codigo = methods.getTotp(username);
         totpRepository.persist(codigo);
-        telegram.send(configs.telegramBotToken(), configs.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
+
+        telegram.send(configs.telegramBotToken(), user.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
         return Response.status(Response.Status.CREATED).build();
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     @PermitAll
     public Response login(LoginRequest loginRequest) {
         try {
@@ -76,9 +93,9 @@ public class Login {
             
             switch (authMethod) {
                 case TOTP:
-                    return loginTotp(loginRequest, configs.telegramChatId());
+                    return loginTotp(loginRequest);
                 case PASSWORD:
-                    // return loginPassword(loginRequest);
+                    return loginPassword(loginRequest);
                 default:
                     throw new IllegalArgumentException("Método de autenticação inválido");
             }
@@ -88,22 +105,23 @@ public class Login {
                 .entity("Método de autenticação inválido")
                 .build();
         } catch (Exception e) {
+            System.out.println(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity("Erro ao fazer login")
                 .build();
         }
     }
 
-    private Response loginTotp(LoginRequest loginRequest, Long chatId) {
+    private Response loginTotp(LoginRequest loginRequest) {
         Totp codigo = totpRepository.find("value", loginRequest.totp()).firstResult();
 
-        totpRepository.delete("value", codigo.value());
-
-        if (codigo.value() == null || !codigo.value().equals(loginRequest.totp())) {
+        if (codigo == null || !codigo.value().equals(loginRequest.totp())) {
             return Response.status(Response.Status.UNAUTHORIZED)
                 .entity("Código TOTP inválido")
                 .build();
         }
+
+        totpRepository.delete("value", codigo.value());
 
         if (!codigo.expiresAt().isValid()) {
             return Response.status(Response.Status.UNAUTHORIZED)
@@ -112,21 +130,37 @@ public class Login {
         }
 
         return Response.status(Response.Status.OK)
-            .entity(methods.getToken(String.format("telegramUser%s", chatId), Set.of(configs.adminRoles())))
+            .entity(methods.getToken(String.format("telegramUser%s", codigo.username()), Set.of(configs.adminRoles())))
             .build();
     }
 
-    // private Response loginPassword(LoginRequest loginRequest) {
-    //     String hashedPassword = hashing.sha256(configs.adminPassword());
+    private Response loginPassword(LoginRequest loginRequest) {
+        User user = userRepository.find("username", loginRequest.username()).firstResult();
+        if (user == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("Usuário ou senha inválidos")
+                .build();
+        }
 
-    //     if (configs.admin().equals(loginRequest.username) && hashedPassword.equals(loginRequest.password)) {
-    //         return Response.status(Response.Status.OK)
-    //             .entity(tokenJwt.getToken(loginRequest.username, Set.of(configs.adminRoles())))
-    //             .build();
-    //     }
+        String hashedPassword = null;
+        try {
+            hashedPassword = hashing.sha256(user.password().decrypt());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-    //     return Response.status(Response.Status.UNAUTHORIZED)
-    //             .entity("{\"error\": \"Usuário ou senha inválidos\"}")
-    //             .build();
-    // }
+        try {
+            if (hashedPassword != null && hashedPassword.equals(loginRequest.password())) {
+                return Response.status(Response.Status.OK)
+                    .entity(methods.getToken(loginRequest.username(), user.roles()))
+                    .build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("Usuário ou senha inválidos")
+                .build();
+    }
 }

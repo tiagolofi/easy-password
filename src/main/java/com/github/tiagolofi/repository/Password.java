@@ -1,28 +1,23 @@
 package com.github.tiagolofi.repository;
 
+import java.security.SecureRandom;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.eclipse.microprofile.config.ConfigProvider;
-
 public class Password {
-
     public String value;
-
-    private static final String PASS_PHRASE = ConfigProvider.getConfig().getOptionalValue("easy.password.pass.phrase", String.class).orElseThrow();
+    public byte[] passPhrase;
     
     public Password(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return this.value;
+        this.passPhrase = new byte[16];
+        new SecureRandom().nextBytes(this.passPhrase);
     }
 
     public String encrypt() throws Exception {
-        SecretKeySpec secretKey = new SecretKeySpec(PASS_PHRASE.getBytes(), "AES");
+        SecretKeySpec secretKey = new SecretKeySpec(this.passPhrase, "AES");
         Cipher cipher = Cipher.getInstance("AES");
 
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);

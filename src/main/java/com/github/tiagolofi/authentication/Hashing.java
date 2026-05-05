@@ -1,4 +1,4 @@
-package com.github.tiagolofi.authentication.jwt;
+package com.github.tiagolofi.authentication;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

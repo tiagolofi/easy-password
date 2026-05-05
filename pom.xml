@@ -49,6 +49,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-client</artifactId>
         </dependency>
+        <!-- Mongo -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-mongodb-panache</artifactId>
+        </dependency>
         <!-- QUTE -->
         <dependency>
             <groupId>io.quarkus</groupId>

@@ -158,8 +158,10 @@ function submitLogin(method, data = {}) {
     })
     .then(response => {
         if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(text || 'Erro ao fazer login');
+            response.text().then(text => {
+                const errorMsg = text || 'Erro ao fazer login';
+                showError(errorMsg);
+                throw new Error(errorMsg);
             });
         }
         return response.text();

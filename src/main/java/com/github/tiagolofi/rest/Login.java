@@ -62,21 +62,21 @@ public class Login {
     public Response generateTotp() {
         Totp codigo = methods.getTotp();
         totpRepository.persist(codigo);
-        telegram.send(configs.telegramBotToken(), configs.telegramChatId(), "Seu código de autenticação é: " + codigo);
-        return Response.status(Response.Status.OK).build();
+        telegram.send(configs.telegramBotToken(), configs.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.TEXT_PLAIN)
     @PermitAll
     public Response login(LoginRequest loginRequest) {
         try {
-            AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method);
+            AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method());
             
             switch (authMethod) {
                 case TOTP:
-                    // return loginTotp(loginRequest, configs.telegramChatId());
+                    return loginTotp(loginRequest, configs.telegramChatId());
                 case PASSWORD:
                     // return loginPassword(loginRequest);
                 default:
@@ -85,32 +85,36 @@ public class Login {
             
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity("{\"error\": \"Método de autenticação inválido\"}")
+                .entity("Método de autenticação inválido")
                 .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity("{\"error\": \"Erro ao fazer login\"}")
+                .entity("Erro ao fazer login")
                 .build();
         }
     }
 
-    // private Response loginTotp(LoginRequest loginRequest, Long chatId) {
-    //     Totp codeRecord = codesRepository.findAll().stream()
-    //         .filter(c -> c.code().equals(loginRequest.totp))
-    //         .findFirst()
-    //         .orElse(null);
+    private Response loginTotp(LoginRequest loginRequest, Long chatId) {
+        Totp codigo = totpRepository.find("value", loginRequest.totp()).firstResult();
 
-    //     if (codeRecord != null) {
-    //         codesRepository.delete(codeRecord);
-    //         return Response.status(Response.Status.OK)
-    //             .entity(tokenJwt.getToken(String.format("telegramUser%s", chatId), Set.of(configs.adminRoles())))
-    //             .build();
-    //     }
+        totpRepository.delete("value", codigo.value());
 
-    //     return Response.status(Response.Status.UNAUTHORIZED)
-    //             .entity("{\"error\": \"Código TOTP inválido\"}")
-    //             .build();
-    // }
+        if (codigo.value() == null || !codigo.value().equals(loginRequest.totp())) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("Código TOTP inválido")
+                .build();
+        }
+
+        if (!codigo.expiresAt().isValid()) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("Código TOTP expirado")
+                .build();
+        }
+
+        return Response.status(Response.Status.OK)
+            .entity(methods.getToken(String.format("telegramUser%s", chatId), Set.of(configs.adminRoles())))
+            .build();
+    }
 
     // private Response loginPassword(LoginRequest loginRequest) {
     //     String hashedPassword = hashing.sha256(configs.adminPassword());

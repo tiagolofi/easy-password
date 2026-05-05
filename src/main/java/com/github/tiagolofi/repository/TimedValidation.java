@@ -4,17 +4,17 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 public class TimedValidation {
-    private final LocalDateTime expiresAt;
+    private final LocalDateTime date;
 
     public TimedValidation(Long expirationTimeSeconds) {
-        this.expiresAt = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusSeconds(expirationTimeSeconds);
+        this.date = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusSeconds(expirationTimeSeconds);
     }
 
     public LocalDateTime getExpiresAt() {
-        return expiresAt;
+        return date;
     }
 
     public boolean isValid() {
-        return LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).isBefore(expiresAt);
+        return LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).isBefore(date);
     }
 }

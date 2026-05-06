@@ -23,16 +23,18 @@ public class AuthenticationMethods {
             .upn(upn)
             .groups(roles)
             .claim("createdAt", LocalDateTime.now(ZoneId.of("America/Sao_Paulo")))
-            .expiresIn(Duration.ofHours(1))
+            .expiresIn(Duration.ofMinutes(30))
             .innerSign()
             .encrypt();
     }
 
     public Totp getTotp(String username) {
+        LocalDateTime expirationDate = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusSeconds(EXPIRATION_TIME_SECONDS);
+
         return new Totp(
             String.valueOf(99999 + new Random().nextInt(1, 900000)), 
             username,
-            new TimedValidation(EXPIRATION_TIME_SECONDS)
+            new TimedValidation(expirationDate)
         ); 
     }
 }

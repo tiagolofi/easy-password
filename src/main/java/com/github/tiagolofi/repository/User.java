@@ -13,4 +13,8 @@ public record User(
     Long telegramChatId,
     Password password,
     Set<String> roles
-) {}
+) {
+    public User withPassword(Password password) {
+        return new User(this.id, this.username, this.telegramChatId, password, this.roles);
+    }
+}

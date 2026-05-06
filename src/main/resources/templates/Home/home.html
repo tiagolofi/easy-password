@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
+    <!-- <div class="container">
         <header class="header">
             <div class="header-content">
                 <div class="header-title">
@@ -29,19 +29,19 @@
                 </div>
 
                 <div id="items-container" class="items-container">
-                    {#if items.size > 0}
-                        {#each items}
-                            <div class="item-card" data-service="{it.service}">
+                    {#if services.size > 0}
+                        {#each services}
+                            <div class="item-card" data-service="{it.name}">
                                 <div class="item-header">
                                     <div class="item-service">
                                         <span class="service-icon"><i class="fa-solid fa-key"></i></span>
-                                        <span>{it.service}</span>
+                                        <span>{services.service}</span>
                                     </div>
                                     <div class="item-actions">
-                                        <button type="button" class="item-action-btn" onclick="editItem('{it.service}')" title="Editar">
+                                        <button type="button" class="item-action-btn" onclick="editItem('{services.service}')" title="Editar">
                                             <i class="fa-regular fa-pen-to-square"></i> Editar
                                         </button>
-                                        <button type="button" class="item-action-btn" onclick="deleteItem('{it.service}')" title="Deletar">
+                                        <button type="button" class="item-action-btn" onclick="deleteItem('{services.service}')" title="Deletar">
                                             <i class="fa-regular fa-trash-can"></i> Deletar
                                         </button>
                                     </div>
@@ -51,30 +51,29 @@
                                     <label class="password-label">Senha</label>
                                     <div class="password-container">
                                         <div class="password-display">
-                                            <span class="password-hidden" id="password-text-{it.service}">••••••••</span>
+                                            <span class="password-hidden" id="password-text-{services.service}">••••••••</span>
                                         </div>
 
                                         <button type="button"
                                                 class="view-original-btn"
-                                                id="view-{it.service}"
-                                                onclick="openPinModal('{it.service}', document.getElementById('password-value-{it.service}').value)"
+                                                id="view-{services.service}"
+                                                onclick="openPinModal('{services.service}', document.getElementById('password-value-{services.service}').value)"
                                                 title="Exibir Senha Original">
                                             <i class="fa-solid fa-lock-open"></i>
                                         </button>
 
                                         <button type="button"
                                                 class="copy-btn"
-                                                onclick="copyToClipboard('{it.service}')"
+                                                onclick="copyToClipboard('{services.service}')"
                                                 title="Copiar para Área de Transferência">
                                             <i class="fa-regular fa-copy"></i>
                                         </button>
                                     </div>
                                 </div>
 
-                                <!-- senha criptografada -->
                                 <input type="hidden"
-                                       id="password-value-{it.service}"
-                                       value="{it.password.encrypt()}">
+                                       id="password-value-{services.service}"
+                                       value="{service.password.getValue()}">
                             </div>
                         {/each}
                     {#else}
@@ -91,7 +90,6 @@
         </main>
     </div>
 
-    <!-- Modal adicionar item -->
     <div id="add-item-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -156,6 +154,6 @@
         </div>
     </div>
 
-    <script src="/home.js"></script>
+    <script src="/home.js"></script> -->
 </body>
 </html>

@@ -1,12 +1,16 @@
 package com.github.tiagolofi.rest;
 
+import java.net.URI;
 import java.util.Set;
+
+import javax.print.attribute.standard.Media;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.AuthenticationMethods;
 import com.github.tiagolofi.authentication.Hashing;
+import com.github.tiagolofi.authentication.PasswordCipher;
 import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.Totp;
@@ -25,6 +29,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 
 @RequestScoped
@@ -50,6 +55,9 @@ public class Login {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    PasswordCipher passwordCipher;
+
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
         public static native TemplateInstance login();
@@ -65,7 +73,6 @@ public class Login {
     @POST
     @PermitAll
     @Path("/totp")
-    @Produces(MediaType.TEXT_PLAIN)
     public Response generateTotp(@RestQuery String username) {
         // Consulta o chatId do usuário
         User user = userRepository.find("username", username).firstResult();
@@ -84,8 +91,8 @@ public class Login {
     }
 
     @POST
-    @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     public Response login(LoginRequest loginRequest) {
         try {
@@ -129,9 +136,18 @@ public class Login {
                 .build();
         }
 
-        return Response.status(Response.Status.OK)
-            .entity(methods.getToken(String.format("telegramUser%s", codigo.username()), Set.of(configs.adminRoles())))
+        String token = methods.getToken(String.format("telegramUser%s", codigo.username()), Set.of(configs.adminRoles()));
+
+        NewCookie cookie = new NewCookie.Builder("Authorization")
+            .value(token)
+            .path("/")
+            .httpOnly(true)
+            .secure(true)
+            .sameSite(NewCookie.SameSite.STRICT)
+            .maxAge(1800)
             .build();
+
+        return Response.seeOther(URI.create("/home")).cookie(cookie).build();
     }
 
     private Response loginPassword(LoginRequest loginRequest) {
@@ -144,16 +160,26 @@ public class Login {
 
         String hashedPassword = null;
         try {
-            hashedPassword = hashing.sha256(user.password().decrypt());
+            String clearPassword = passwordCipher.decrypt(user.password());
+            System.out.println("Senha clara: " + clearPassword);
+            hashedPassword = hashing.sha256(clearPassword);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
             if (hashedPassword != null && hashedPassword.equals(loginRequest.password())) {
-                return Response.status(Response.Status.OK)
-                    .entity(methods.getToken(loginRequest.username(), user.roles()))
+                String token = methods.getToken(loginRequest.username(), user.roles());
+                NewCookie cookie = new NewCookie.Builder("Authorization")
+                    .value(token)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite(NewCookie.SameSite.STRICT)
+                    .maxAge(1800)
                     .build();
+
+                return Response.seeOther(URI.create("/home")).cookie(cookie).build();
             }
         } catch (Exception e) {
             e.printStackTrace();

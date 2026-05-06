@@ -148,7 +148,17 @@ function submitNewItem(event) {
     const password = document.getElementById('password-input').value;
     const editService = event.target.dataset.editService;
 
-    const newItem = { service, password };
+    if (!service) {
+        alert('Digite o nome do serviço');
+        return;
+    }
+
+    if (!password) {
+        alert('Digite a senha');
+        return;
+    }
+
+    const newItem = { name: service, password };
 
     if (!editService) {
         // Adicionar novo item
@@ -164,7 +174,7 @@ function submitNewItem(event) {
 // ===== SERVER OPERATIONS =====
 async function addItemToServer(item) {
     try {
-        const response = await fetch('/home/add', {
+        const response = await fetch('/services/adicionar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -173,20 +183,20 @@ async function addItemToServer(item) {
         });
 
         if (!response.ok) {
-            throw new Error('Erro ao adicionar item');
+            throw new Error('Erro ao adicionar serviço');
         }
 
         // Recarregar página
         location.reload();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao adicionar item: ' + error.message);
+        alert('Erro ao adicionar serviço: ' + error.message);
     }
 }
 
 async function updateItemOnServer(service, item) {
     try {
-        const response = await fetch('/home/edit', {
+        const response = await fetch('/services/alterar', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -197,36 +207,36 @@ async function updateItemOnServer(service, item) {
         console.log('Resposta do servidor:', response);
 
         if (!response.ok) {
-            throw new Error('Erro ao atualizar item');
+            throw new Error('Erro ao atualizar serviço');
         }
 
         // Recarregar página
         location.reload();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao atualizar item: ' + error.message);
+        alert('Erro ao atualizar serviço: ' + error.message);
     }
 }
 
 async function deleteItemFromServer(service) {
     try {
-        const response = await fetch('/home/delete', {
+        const response = await fetch('/services/apagar', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ service: service })
+            body: JSON.stringify({ name: service })
         });
 
         if (!response.ok) {
-            throw new Error('Erro ao deletar item');
+            throw new Error('Erro ao deletar serviço');
         }
 
         // Recarregar página
         location.reload();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao deletar item: ' + error.message);
+        alert('Erro ao deletar serviço: ' + error.message);
     }
 }
 
@@ -291,7 +301,14 @@ async function validatePinAndDecrypt(event) {
         const encryptedPassword = modal.dataset.encryptedPassword;
 
         const response = await fetch(
-            `/home/view?encryptedPassword=${encodeURIComponent(encryptedPassword)}&pin=${encodeURIComponent(pinHash)}`
+            `/services/mostrar-senha?pin=${encodeURIComponent(pinHash)}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: service, password: encryptedPassword })
+            }
         );
 
         if (!response.ok) throw new Error('Erro ao validar PIN');

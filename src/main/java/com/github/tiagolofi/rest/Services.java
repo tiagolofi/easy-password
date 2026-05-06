@@ -3,7 +3,7 @@ package com.github.tiagolofi.rest;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.Hashing;
-import com.github.tiagolofi.authentication.PassPhraseCipher;
+import com.github.tiagolofi.authentication.PasswordCipher;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.Service;
 import com.github.tiagolofi.repository.ServiceRepository;
@@ -35,14 +35,14 @@ public class Services {
     EasyPasswordConfigs configs;
 
     @Inject
-    PassPhraseCipher passPhraseCipher;
+    PasswordCipher passwordCipher;
 
     @PUT
     @RolesAllowed({"admin"})
     @Path("/alterar")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response editItem(@RestQuery String id){ 
-        serviceRepository.update(id);
+    public Response editItem(Service service){ 
+        serviceRepository.update(service);
         return Response.ok().build();
     }
 
@@ -68,9 +68,9 @@ public class Services {
     @RolesAllowed({"admin"})
     @Path("/mostrar-senha")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response viewPassword(@RestQuery String encryptedPassword, @RestQuery String pin) throws Exception {
+    public Response viewPassword(Service service, @RestQuery String pin) throws Exception {
         if (hashing.sha256(configs.pin()).equals(pin)) {
-            return Response.ok(passPhraseCipher.decrypt(encryptedPassword)).build();
+            return Response.ok(passwordCipher.decrypt(service.password())).build();
         }
 
         throw new SecurityException("PIN inválido");

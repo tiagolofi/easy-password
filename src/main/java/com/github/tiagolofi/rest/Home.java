@@ -2,8 +2,9 @@ package com.github.tiagolofi.rest;
 
 import java.util.List;
 
+import org.jboss.resteasy.reactive.RestCookie;
+
 import com.github.tiagolofi.authentication.Hashing;
-import com.github.tiagolofi.authentication.PassPhraseCipher;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.Service;
 import com.github.tiagolofi.repository.ServiceRepository;
@@ -26,9 +27,6 @@ public class Home {
     ServiceRepository serviceRepository;
 
     @Inject
-    PassPhraseCipher passPhraseCipher;
-
-    @Inject
     Hashing hashing;
 
     @Inject
@@ -36,14 +34,15 @@ public class Home {
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance home(List<Service> services);
+        public static native TemplateInstance home();
     }
     
     @GET
     @Produces(MediaType.TEXT_HTML)
     @RolesAllowed({"user"})
-    public TemplateInstance homePage() {
-        return Templates.home(serviceRepository.listAll());
+    public TemplateInstance homePage(@RestCookie("Authorization") String token) {
+        System.out.println("Token recebido: " + token);
+        return Templates.home();
     }
 
 }

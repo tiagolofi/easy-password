@@ -88,8 +88,8 @@ function enviarCodigoTOTP() {
     disableButton('.btn-primary');
     showError('');
 
-    fetch('/login/totp', {
-        method: 'POST'
+    fetch('/login/totp?username=tiagolofi', {
+        method: 'POST',
     })
     .then(response => {
         if (!response.ok) {
@@ -159,25 +159,10 @@ function submitLogin(method, data = {}) {
     })
     .then(response => {
         if (!response.ok) {
-            response.text().then(text => {
-                const errorMsg = text || 'Erro ao fazer login';
-                showError(errorMsg);
-                throw new Error(errorMsg);
-            });
-        }
-        return response.text();
-    })
-    .then(token => {
-        if (!token) {
-            throw new Error('Credenciais inválidas');
+            const errorMsg =  'Erro ao fazer login';
+            showError(errorMsg);
         }
         console.log('Login bem-sucedido!');
-        
-        // Adicionando token no cookie
-        document.cookie = `Authorization=${token}; path=/; secure; SameSite=Lax`;
-        
-        // Redirecionar para home
-        window.location.href = '/home';
     })
     .catch(error => {
         console.error('Erro:', error);

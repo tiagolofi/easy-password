@@ -21,6 +21,7 @@ import com.github.tiagolofi.repository.UserRepository;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -93,6 +94,26 @@ public class Login {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
+    @Path("/logout")
+    public Response logout() {
+        NewCookie expiredAuthCookie = new NewCookie.Builder("Authorization")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .build();
+
+        return Response
+                .seeOther(URI.create("/login"))
+                .cookie(expiredAuthCookie)
+                .build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     public Response login(LoginRequest loginRequest) {
         try {
@@ -136,7 +157,9 @@ public class Login {
                 .build();
         }
 
-        String token = methods.getToken(String.format("telegramUser%s", codigo.username()), Set.of(configs.adminRoles()));
+        User user = userRepository.find("username", loginRequest.username()).firstResult();
+
+        String token = methods.getToken(String.format("telegramUser%s", user.telegramChatId()), user.roles());
 
         NewCookie cookie = new NewCookie.Builder("Authorization")
             .value(token)

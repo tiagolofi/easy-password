@@ -105,6 +105,10 @@ body {
     }
 }
 
+.hidden {
+    display: none;
+}
+
 .method-selector {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
@@ -258,6 +262,11 @@ body {
 
 .form-group input:focus ~ .input-underline {
     width: 100%;
+}
+
+/* ==== TOTP ==== */
+#totp-input-group {
+    margin-top: 1.5rem;
 }
 
 /* ===== PASSWORD WRAPPER ===== */

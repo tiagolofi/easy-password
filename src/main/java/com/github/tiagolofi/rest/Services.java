@@ -1,10 +1,13 @@
 package com.github.tiagolofi.rest;
 
+import java.util.List;
+
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.Hashing;
 import com.github.tiagolofi.authentication.PasswordCipher;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
+import com.github.tiagolofi.repository.Password;
 import com.github.tiagolofi.repository.Service;
 import com.github.tiagolofi.repository.ServiceRepository;
 
@@ -37,6 +40,18 @@ public class Services {
     @Inject
     PasswordCipher passwordCipher;
 
+    @GET
+    @RolesAllowed({"user"})
+    @Path("listar")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> listar() {
+        return serviceRepository
+            .listAll()
+            .stream()
+            .map(s -> s.name())
+            .toList();
+    }
+
     @PUT
     @RolesAllowed({"admin"})
     @Path("/alterar")
@@ -50,8 +65,9 @@ public class Services {
     @RolesAllowed({"admin"})
     @Path("/adicionar")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response addItem(Service service) {
-        serviceRepository.persist(service);
+    public Response addItem(Service service) throws Exception {
+        var newService = service.withPassword(passwordCipher.encrypt(service.password()));
+        serviceRepository.persist(newService);
         return Response.created(null).build();
     }
 
@@ -64,11 +80,13 @@ public class Services {
         return Response.ok().build();
     }
 
-    @GET
+    @POST
     @RolesAllowed({"admin"})
     @Path("/mostrar-senha")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response viewPassword(Service service, @RestQuery String pin) throws Exception {
+    public Response viewPassword(@RestQuery String name, @RestQuery String pin) throws Exception {
+        Service service = serviceRepository.find("name", name).firstResult();
+
         if (hashing.sha256(configs.pin()).equals(pin)) {
             return Response.ok(passwordCipher.decrypt(service.password())).build();
         }

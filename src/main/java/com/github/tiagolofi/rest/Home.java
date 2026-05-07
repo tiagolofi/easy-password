@@ -2,6 +2,7 @@ package com.github.tiagolofi.rest;
 
 import java.util.List;
 
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.resteasy.reactive.RestCookie;
 
 import com.github.tiagolofi.authentication.Hashing;
@@ -32,6 +33,9 @@ public class Home {
     @Inject
     EasyPasswordConfigs configs;
 
+    @Inject
+    JsonWebToken jwt;
+
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
         public static native TemplateInstance home();
@@ -42,6 +46,9 @@ public class Home {
     @RolesAllowed({"user"})
     public TemplateInstance homePage(@RestCookie("Authorization") String token) {
         System.out.println("Token recebido: " + token);
+
+        System.out.println(jwt.getName());
+
         return Templates.home();
     }
 

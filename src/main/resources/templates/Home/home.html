@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <!-- <div class="container">
+    <div class="container">
+        <!-- Header -->
         <header class="header">
             <div class="header-content">
                 <div class="header-title">
@@ -16,114 +17,66 @@
                     <h1>Easy Password</h1>
                 </div>
                 <div class="header-actions">
-                    <button type="button" class="btn-logout" onclick="logout()">Sair</button>
+                    <button type="button" class="btn-add-item" onclick="openAddModal()">
+                        <i class="fa-solid fa-plus"></i> Adicionar
+                    </button>
+                    <button type="button" class="btn-logout" onclick="logout()">
+                        <i class="fa-solid fa-sign-out-alt"></i> Sair
+                    </button>
                 </div>
             </div>
         </header>
 
+        <!-- Main Content -->
         <main class="main-content">
             <section class="items-section">
-                <div class="section-header">
-                    <h2>Meus Serviços</h2>
-                    <button type="button" class="btn-add-item" onclick="addNewItem()">+ Adicionar</button>
-                </div>
-
                 <div id="items-container" class="items-container">
-                    {#if services.size > 0}
-                        {#each services}
-                            <div class="item-card" data-service="{it.name}">
-                                <div class="item-header">
-                                    <div class="item-service">
-                                        <span class="service-icon"><i class="fa-solid fa-key"></i></span>
-                                        <span>{services.service}</span>
-                                    </div>
-                                    <div class="item-actions">
-                                        <button type="button" class="item-action-btn" onclick="editItem('{services.service}')" title="Editar">
-                                            <i class="fa-regular fa-pen-to-square"></i> Editar
-                                        </button>
-                                        <button type="button" class="item-action-btn" onclick="deleteItem('{services.service}')" title="Deletar">
-                                            <i class="fa-regular fa-trash-can"></i> Deletar
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="item-password-section">
-                                    <label class="password-label">Senha</label>
-                                    <div class="password-container">
-                                        <div class="password-display">
-                                            <span class="password-hidden" id="password-text-{services.service}">••••••••</span>
-                                        </div>
-
-                                        <button type="button"
-                                                class="view-original-btn"
-                                                id="view-{services.service}"
-                                                onclick="openPinModal('{services.service}', document.getElementById('password-value-{services.service}').value)"
-                                                title="Exibir Senha Original">
-                                            <i class="fa-solid fa-lock-open"></i>
-                                        </button>
-
-                                        <button type="button"
-                                                class="copy-btn"
-                                                onclick="copyToClipboard('{services.service}')"
-                                                title="Copiar para Área de Transferência">
-                                            <i class="fa-regular fa-copy"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <input type="hidden"
-                                       id="password-value-{services.service}"
-                                       value="{service.password.getValue()}">
-                            </div>
-                        {/each}
-                    {#else}
-                        <div class="empty-state">
-                            <span class="empty-state-icon"><i class="fa-solid fa-plus"></i></span>
-                            <p class="empty-state-text">Nenhum serviço cadastrado</p>
-                            <p class="empty-state-subtext">Comece a adicionar suas senhas agora</p>
-                            <button type="button" class="btn-add-item" onclick="addNewItem()">+ Adicionar Serviço</button>
-                        </div>
-                    {/else}
-                    {/if}
+                    <!-- Itens carregados via JavaScript -->
                 </div>
             </section>
         </main>
     </div>
 
+    <!-- Modal: Adicionar/Editar Serviço -->
     <div id="add-item-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Adicionar Novo Serviço</h3>
-                <button type="button" class="modal-close" onclick="closeModal()">&times;</button>
+                <h3 id="modal-title">Adicionar Novo Serviço</h3>
+                <button type="button" class="modal-close" onclick="closeAddModal()">&times;</button>
             </div>
 
-            <form id="add-item-form" onsubmit="submitNewItem(event)">
+            <form id="add-item-form" onsubmit="submitItem(event)">
                 <div class="form-group">
-                    <label for="service-input">Nome do Serviço</label>
-                    <input type="text"
-                           id="service-input"
-                           name="service"
-                           placeholder="ex: Gmail, GitHub"
-                           required>
+                    <label for="service-name">Nome do Serviço</label>
+                    <input 
+                        type="text"
+                        id="service-name"
+                        name="service"
+                        placeholder="ex: Gmail, GitHub"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
-                    <label for="password-input">Senha</label>
-                    <input type="password"
-                           id="password-input"
-                           name="password"
-                           placeholder="Digite a senha"
-                           required>
+                    <label for="service-password">Senha</label>
+                    <input 
+                        type="password"
+                        id="service-password"
+                        name="password"
+                        placeholder="Digite a senha"
+                        required
+                    >
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancelar</button>
                     <button type="submit" class="btn-save">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal: PIN para visualizar senha -->
     <div id="pin-modal" class="modal">
         <div class="modal-content modal-pin">
             <div class="modal-header">
@@ -131,19 +84,19 @@
                 <button type="button" class="modal-close" onclick="closePinModal()">&times;</button>
             </div>
 
-            <form onsubmit="validatePinAndDecrypt(event)">
+            <form id="pin-form" onsubmit="validatePinAndDecrypt(event)">
                 <div class="form-group">
-                    <label for="pin-input">PIN de 4 dígitos</label>
-
-                    <input type="password"
-                           id="pin-input"
-                           name="pin"
-                           placeholder="••••"
-                           maxlength="4"
-                           inputmode="numeric"
-                           required>
-
-                    <p class="pin-help">Digite apenas números</p>
+                    <label for="pin-input">PIN de 6 dígitos</label>
+                    <input 
+                        type="password"
+                        id="pin-input"
+                        name="pin"
+                        placeholder="••••••"
+                        maxlength="6"
+                        inputmode="numeric"
+                        required
+                    >
+                    <small class="help-text">Digite apenas números</small>
                 </div>
 
                 <div class="modal-actions">
@@ -154,6 +107,23 @@
         </div>
     </div>
 
-    <script src="/home.js"></script> -->
+    <!-- Modal: Confirmar exclusão -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content modal-confirm">
+            <div class="modal-header">
+                <h3>Confirmar exclusão</h3>
+                <button type="button" class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+
+            <p id="delete-message">Tem certeza que deseja deletar este serviço?</p>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+                <button type="button" class="btn-delete" onclick="confirmDelete()">Deletar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/home.js"></script>
 </body>
 </html>

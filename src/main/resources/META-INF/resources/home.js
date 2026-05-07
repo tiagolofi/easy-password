@@ -23,7 +23,7 @@ async function loadServices() {
 
         if (!response.ok) {
             if (response.status === 401) {
-                window.location.href = '/login';
+                window.location.href = '/auth';
                 return;
             }
             throw new Error('Erro ao carregar serviços');
@@ -67,11 +67,6 @@ function renderServices() {
                             onclick="openPinModal('${escapeHtml(service)}')"
                             title="Copiar senha">
                         <i class="fa-solid fa-unlock"></i>
-                    </button>
-                    <button type="button" class="item-action-btn btn-edit" 
-                            onclick="openEditModal(${index})"
-                            title="Editar serviço">
-                        <i class="fa-solid fa-pen"></i>
                     </button>
                     <button type="button" class="item-action-btn btn-delete" 
                             onclick="openDeleteModal('${escapeHtml(service)}')"
@@ -135,10 +130,11 @@ async function validatePinAndDecrypt(event) {
         const name = pinModalService.name
 
         const response = await fetch(
-            `/services/mostrar-senha?name=${encodeURIComponent(name)}&pin=${encodeURIComponent(pinHash)}`,
+            `/services/mostrar-senha?name=${encodeURIComponent(name)}`,
             {
                 method: 'POST',
                 headers: {
+                    'X-PIN-SECURITY': pinHash,
                     'Content-Type': 'application/json'
                 }
             }
@@ -264,14 +260,12 @@ async function confirmDelete() {
     if (!deleteModalService) return;
 
     try {
-        const response = await fetch('/services/apagar', {
+        const name = deleteModalService;
+        const response = await fetch(`/services/apagar?name=${encodeURIComponent(name)}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: deleteModalService
-            })
+            }
         });
 
         if (!response.ok) {
@@ -296,13 +290,13 @@ function showNotification(message, type = 'info') {
 // ===== LOGOUT =====
 async function logout() {
     try {
-        await fetch('/login/logout', {
+        await fetch('/auth/logout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-        window.location.href = '/login'
+        window.location.href = '/auth'
     } catch (error) {
         console.error(error);
     }

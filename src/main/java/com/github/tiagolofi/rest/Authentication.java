@@ -1,16 +1,12 @@
 package com.github.tiagolofi.rest;
 
 import java.net.URI;
-import java.util.Set;
-
-import javax.print.attribute.standard.Media;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.AuthenticationMethods;
-import com.github.tiagolofi.authentication.Hashing;
-import com.github.tiagolofi.authentication.PasswordCipher;
+import com.github.tiagolofi.authentication.CriptoUtils;
 import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.Totp;
@@ -34,11 +30,8 @@ import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 
 @RequestScoped
-@Path("/login")
-public class Login {
-
-    @Inject
-    Hashing hashing;
+@Path("/auth")
+public class Authentication {
 
     @Inject
     AuthenticationMethods methods;
@@ -57,18 +50,18 @@ public class Login {
     UserRepository userRepository;
 
     @Inject
-    PasswordCipher passwordCipher;
+    CriptoUtils criptoUtils;
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance login();
+        public static native TemplateInstance authentication();
     }
     
     @GET
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance getLogin() {
-        return Templates.login();
+        return Templates.authentication();
     }
 
     @POST
@@ -115,6 +108,7 @@ public class Login {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
+    @Path("/login")
     public Response login(LoginRequest loginRequest) {
         try {
             AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method());
@@ -159,7 +153,7 @@ public class Login {
 
         User user = userRepository.find("username", loginRequest.username()).firstResult();
 
-        String token = methods.getToken(String.format("telegramUser%s", user.telegramChatId()), user.roles());
+        String token = methods.getToken(user.username(), user.roles());
 
         NewCookie cookie = new NewCookie.Builder("Authorization")
             .value(token)
@@ -183,16 +177,15 @@ public class Login {
 
         String hashedPassword = null;
         try {
-            String clearPassword = passwordCipher.decrypt(user.password());
-            System.out.println("Senha clara: " + clearPassword);
-            hashedPassword = hashing.sha256(clearPassword);
+            String clearPassword = criptoUtils.decrypt(user.password());
+            hashedPassword = criptoUtils.sha256(clearPassword);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
             if (hashedPassword != null && hashedPassword.equals(loginRequest.password())) {
-                String token = methods.getToken(loginRequest.username(), user.roles());
+                String token = methods.getToken(user.username(), user.roles());
                 NewCookie cookie = new NewCookie.Builder("Authorization")
                     .value(token)
                     .path("/")

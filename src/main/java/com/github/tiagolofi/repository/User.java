@@ -12,9 +12,14 @@ public record User(
     String username,
     Long telegramChatId,
     Password password,
+    String pin,
     Set<String> roles
 ) {
+    public User withPin(String pin) {
+        return new User(this.id, this.username, this.telegramChatId, this.password, pin, this.roles);
+    }
+
     public User withPassword(Password password) {
-        return new User(this.id, this.username, this.telegramChatId, password, this.roles);
+        return new User(this.id, this.username, this.telegramChatId, password, this.pin, this.roles);
     }
 }

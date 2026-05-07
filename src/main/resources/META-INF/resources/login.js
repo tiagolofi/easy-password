@@ -79,7 +79,7 @@ async function enviarCodigoTOTP() {
         disableButton('#btn-enviar-totp');
         hideError();
 
-        const response = await fetch(`/login/totp?username=${encodeURIComponent(username)}`, {
+        const response = await fetch(`/auth/totp?username=${encodeURIComponent(username)}`, {
             method: 'POST'
         });
 
@@ -124,7 +124,7 @@ async function submitTOTP(event) {
         disableButton('button[type="submit"]');
         hideError();
 
-        await fetch('/login', {
+        await fetch('/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -192,7 +192,7 @@ async function submitSenha(event) {
         // Hash da senha
         const hashedPassword = await sha256(password);
 
-        const response = await fetch('/login', {
+        const response = await fetch('/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

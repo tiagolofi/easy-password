@@ -1,7 +1,10 @@
 package com.github.tiagolofi.authentication;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HexFormat;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,7 +14,19 @@ import com.github.tiagolofi.repository.Password;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class PasswordCipher {
+public class CriptoUtils {
+
+    private static final String SHA_256 = "SHA-256";
+    
+    public String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance(SHA_256);
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Password encrypt(Password password) throws Exception {
         byte[] passPhrase = new byte[16];

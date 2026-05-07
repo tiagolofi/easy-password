@@ -6,4 +6,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class ServiceRepository implements PanacheMongoRepository<Service> {
 
+    public Service findByName(String name) {
+        return find("name", name).firstResult();
+    }
+
 }

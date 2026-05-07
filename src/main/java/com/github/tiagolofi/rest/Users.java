@@ -1,9 +1,8 @@
 package com.github.tiagolofi.rest;
 
-import java.security.SecureRandom;
 import java.util.List;
 
-import com.github.tiagolofi.authentication.PasswordCipher;
+import com.github.tiagolofi.authentication.CriptoUtils;
 import com.github.tiagolofi.repository.User;
 import com.github.tiagolofi.repository.UserRepository;
 
@@ -23,14 +22,16 @@ public class Users {
     UserRepository userRepository;
 
     @Inject
-    PasswordCipher passwordCipher;
+    CriptoUtils criptoUtils;
 
     @POST
     @Path("/adicionar")
-    // @RolesAllowed("admin")
+    @RolesAllowed("admin")
     public Response addUser(User user) {
         try {
-            User newUser = user.withPassword(passwordCipher.encrypt(user.password()));
+            User newUser = user
+                .withPin(criptoUtils.sha256(user.pin()))
+                .withPassword(criptoUtils.encrypt(user.password()));
 
             userRepository.persist(newUser);
 
@@ -42,7 +43,7 @@ public class Users {
 
     @GET
     @Path("/listar")
-    // @RolesAllowed("admin")
+    @RolesAllowed("admin")
     public List<User> listUsers() {
         return userRepository.listAll();
     }

@@ -4,6 +4,29 @@ let services = [];
 let editingService = null;
 let pinModalService = null;
 let deleteModalService = null;
+let csrfToken = '';
+
+// ===== CSRF TOKEN =====
+function getCsrfToken() {
+    // Tenta pegar do cookie
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrf-token') {
+            return decodeURIComponent(value);
+        }
+    }
+    // Tenta pegar do hidden input
+    const hiddenInput = document.querySelector('input[name="X-CSRF-Token"]');
+    return hiddenInput ? hiddenInput.value : '';
+}
+
+// Carrega token CSRF ao iniciar
+document.addEventListener('DOMContentLoaded', () => {
+    csrfToken = getCsrfToken();
+    console.log('CSRF Token carregado:', csrfToken ? 'Sim' : 'Não');
+    loadServices();
+});
 
 // ===== SHA256 HASH =====
 async function sha256(str) {
@@ -129,14 +152,19 @@ async function validatePinAndDecrypt(event) {
         const pinHash = await sha256(pin);
         const name = pinModalService.name
 
+        const headers = {
+            'X-PIN-SECURITY': pinHash,
+            'Content-Type': 'application/json'
+        };
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+
         const response = await fetch(
             `/services/mostrar-senha?name=${encodeURIComponent(name)}`,
             {
                 method: 'POST',
-                headers: {
-                    'X-PIN-SECURITY': pinHash,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             }
         );
 
@@ -208,24 +236,27 @@ async function submitItem(event) {
     };
 
     try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+
         let response;
 
         if (editingService !== null) {
             // UPDATE
             response = await fetch('/services/alterar', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(item)
             });
         } else {
             // CREATE
             response = await fetch('/services/adicionar', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(item)
             });
         }
@@ -260,12 +291,17 @@ async function confirmDelete() {
     if (!deleteModalService) return;
 
     try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+
         const name = deleteModalService;
         const response = await fetch(`/services/apagar?name=${encodeURIComponent(name)}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: headers
         });
 
         if (!response.ok) {

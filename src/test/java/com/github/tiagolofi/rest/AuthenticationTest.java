@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.github.tiagolofi.authentication.AuthenticationMethods;
 import com.github.tiagolofi.clients.Telegram;
+import com.github.tiagolofi.repository.LogsRepository;
 import com.github.tiagolofi.repository.Totp;
 import com.github.tiagolofi.repository.TotpRepository;
 import com.github.tiagolofi.repository.User;
@@ -34,6 +35,9 @@ public class AuthenticationTest {
 
     @InjectMock
     TotpRepository totpRepository;
+
+    @InjectMock
+    LogsRepository logsRepository;
 
     @InjectMock
     @RestClient

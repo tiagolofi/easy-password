@@ -49,7 +49,7 @@ public class Services {
     @Path("listar")
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> listar() {
-        return serviceRepository.findByOwner(jwtToken.getName())
+        return serviceRepository.findByOwner(jwtToken.getName());
     }
 
     @POST

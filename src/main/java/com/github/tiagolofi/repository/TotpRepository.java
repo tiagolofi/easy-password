@@ -6,4 +6,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class TotpRepository implements PanacheMongoRepository<Totp> {
     
+    public void removerTotp(Totp totp) {
+        delete("value", totp.value());
+    }
+
 }

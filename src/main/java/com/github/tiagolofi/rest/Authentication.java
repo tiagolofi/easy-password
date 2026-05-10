@@ -106,7 +106,7 @@ public class Authentication {
     @Path("/totp")
     public Response generateTotp(@RestQuery String username) {
         // Consulta o chatId do usuário
-        User user = userRepository.find("username", username).firstResult();
+        User user = userRepository.findByUsername(username);
         if (user == null) {
             return Response.status(Response.Status.FORBIDDEN)
                 .entity("Requisição não permitida.")
@@ -121,7 +121,7 @@ public class Authentication {
             telegram.send(configs.telegramBotToken(), user.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
         } catch(Exception e) {
             log.errorf("Código não enviado para: %s", user.telegramChatId());
-            totpRepository.delete("value", codigo.value());
+            totpRepository.removerTotp(codigo);
             return Response.status(Response.Status.NOT_ACCEPTABLE).build();
         }
         

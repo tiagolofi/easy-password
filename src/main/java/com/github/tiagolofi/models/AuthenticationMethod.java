@@ -1,4 +1,4 @@
-package com.github.tiagolofi.rest;
+package com.github.tiagolofi.models;
 
 public enum AuthenticationMethod {
     TOTP("totp"),

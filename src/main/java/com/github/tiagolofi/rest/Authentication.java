@@ -10,6 +10,8 @@ import com.github.tiagolofi.authentication.AuthenticationMethods;
 import com.github.tiagolofi.authentication.CriptoUtils;
 import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
+import com.github.tiagolofi.models.AuthenticationMethod;
+import com.github.tiagolofi.models.LoginRequest;
 import com.github.tiagolofi.repository.Totp;
 import com.github.tiagolofi.repository.TotpRepository;
 import com.github.tiagolofi.repository.User;
@@ -17,6 +19,7 @@ import com.github.tiagolofi.repository.UserRepository;
 
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
@@ -73,6 +76,7 @@ public class Authentication {
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Path("/login")
+    @RunOnVirtualThread
     public Response login(LoginRequest loginRequest) {
         try {
             AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method());
@@ -91,7 +95,6 @@ public class Authentication {
                 .entity("Método de autenticação inválido")
                 .build();
         } catch (Exception e) {
-            System.out.println(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity("Erro ao fazer login")
                 .build();
@@ -135,9 +138,6 @@ public class Authentication {
         }
 
         totpRepository.delete("value", codigo.value());
-
-        System.out.println(codigo);
-        System.out.println(codigo.expiresAt().getExpirationDate());
 
         if (!codigo.expiresAt().isValid()) {
             return Response.status(Response.Status.UNAUTHORIZED)

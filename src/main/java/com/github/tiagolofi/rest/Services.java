@@ -49,12 +49,7 @@ public class Services {
     @Path("listar")
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> listar() {
-        return serviceRepository
-            .findByOwner(jwtToken.getName())
-            .stream()
-            .map(s -> s.name())
-            .sorted()
-            .toList();
+        return serviceRepository.findByOwner(jwtToken.getName())
     }
 
     @POST
@@ -65,8 +60,12 @@ public class Services {
         var newService = service
             .withOwner(jwtToken.getName())
             .withPassword(criptoUtils.encrypt(service.password()));
-        serviceRepository.persist(newService);
-        return Response.created(null).build();
+        try {
+            serviceRepository.persist(newService);
+            return Response.ok().build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Erro ao adicionar serviço").build();
+        }
     }
 
     @DELETE

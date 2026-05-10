@@ -8,8 +8,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class ServiceRepository implements PanacheMongoRepository<Service> {
 
-    public List<Service> findByOwner(String username) {
-        return list("owner", username);
+    public List<String> findByOwner(String username) {
+        return list("owner", username)
+            .stream()
+            .map(s -> s.name())
+            .sorted()
+            .toList();
     }
 
 }

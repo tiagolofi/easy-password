@@ -3,9 +3,14 @@ package com.github.tiagolofi.filters;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import org.jboss.logging.Logger;
+
+import com.github.tiagolofi.repository.Logs;
+import com.github.tiagolofi.repository.LogsRepository;
+import com.github.tiagolofi.repository.Metadata;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -23,6 +28,9 @@ public class LogAccessFilter implements ContainerRequestFilter {
     @Inject
     Logger logger;
 
+    @Inject
+    LogsRepository logsRepository;
+
     private String serverID;
     private String userAgent;
 
@@ -39,67 +47,87 @@ public class LogAccessFilter implements ContainerRequestFilter {
             serverID = getServerIdentifier();
         }
 
-        StringBuilder logMessage = new StringBuilder();
-        logMessage.append("\n");
-        logMessage.append("========== LOG ACCESS FILTER ==========\n");
-        logMessage.append("Timestamp: ").append(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)).append("\n");
-
-        // ID do servidor
-        logMessage.append("Server ID: ").append(serverID).append("\n");
-
-        // Informações da requisição
-        logMessage.append("Method: ").append(requestContext.getMethod()).append("\n");
-        logMessage.append("URI: ").append(requestContext.getUriInfo().getRequestUri()).append("\n");
-        logMessage.append("Path: ").append(requestContext.getUriInfo().getPath()).append("\n");
-
-        // IP do cliente
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        String method = requestContext.getMethod();
+        String uri = requestContext.getUriInfo().getRequestUri().toString();
+        String path = requestContext.getUriInfo().getPath();
         String clientIP = getClientIP(requestContext);
-        logMessage.append("Client IP: ").append(clientIP).append("\n");
-
-        // User-Agent e informações do dispositivo
-        userAgent = requestContext.getHeaderString("User-Agent");
-        logMessage.append("User-Agent: ").append(userAgent != null ? userAgent : "NOT PROVIDED").append("\n");
-        logMessage.append("Device Info: ").append(getDeviceInfo(userAgent)).append("\n");
-
-        // Informações de localização
-        logMessage.append("Location: ").append(getLocationInfo(requestContext)).append("\n");
-
-        // Accept language
-        String acceptLanguage = requestContext.getHeaderString("Accept-Language");
-        logMessage.append("Accept-Language: ").append(acceptLanguage != null ? acceptLanguage : "NOT PROVIDED").append("\n");
-
-        // Referrer
-        String referrer = requestContext.getHeaderString("Referer");
-        logMessage.append("Referrer: ").append(referrer != null ? referrer : "DIRECT ACCESS").append("\n");
-
-        // Accept media types
-        logMessage.append("Accept Media Types: ").append(requestContext.getAcceptableMediaTypes()).append("\n");
-
-        // Query parameters
-        if (!requestContext.getUriInfo().getQueryParameters().isEmpty()) {
-            logMessage.append("Query Parameters: ").append(requestContext.getUriInfo().getQueryParameters()).append("\n");
-        }
-
+        userAgent = requestContext.getHeaderString("User-Agent") != null ? requestContext.getHeaderString("User-Agent") : "NOT PROVIDED";
+        String deviceInfo = getDeviceInfo(userAgent);
+        String location = getLocationInfo(requestContext);
+        String acceptLanguage = requestContext.getHeaderString("Accept-Language") != null ? requestContext.getHeaderString("Accept-Language") : "NOT PROVIDED";
+        String referrer = requestContext.getHeaderString("Referer") != null ? requestContext.getHeaderString("Referer") : "DIRECT ACCESS";
+        String acceptMediaTypes = requestContext.getAcceptableMediaTypes().toString();
+        String queryParameters = !requestContext.getUriInfo().getQueryParameters().isEmpty() ? requestContext.getUriInfo().getQueryParameters().toString() : "NONE";
+        
         // Todos os headers
-        logMessage.append("Headers: {\n");
+        StringBuilder headersBuilder = new StringBuilder("{\n");
         requestContext.getHeaders().keySet().stream()
                 .sorted()
                 .forEach(headerName -> {
                     String headerValue = requestContext.getHeaderString(headerName);
-                    logMessage.append("  ").append(headerName).append(": ").append(headerValue).append("\n");
+                    headersBuilder.append("  ").append(headerName).append(": ").append(headerValue).append("\n");
                 });
-        logMessage.append("}\n");
-
-        // Content-Type da requisição
+        headersBuilder.append("}");
+        String headers = headersBuilder.toString();
+        
         MediaType mediaType = requestContext.getMediaType();
-        logMessage.append("Content-Type: ").append(mediaType != null ? mediaType : "NOT SPECIFIED").append("\n");
+        String contentType = mediaType != null ? mediaType.toString() : "NOT SPECIFIED";
+        Long contentLength = (long) requestContext.getLength();
 
-        // Length da requisição
-        logMessage.append("Content-Length: ").append(requestContext.getLength()).append("\n");
-
-        logMessage.append("=============================================\n");
+        // Log no console
+        StringBuilder logMessage = new StringBuilder();
+        logMessage.append("\n========== LOG ACCESS FILTER ==========\n")
+                .append("Timestamp: ").append(timestamp).append("\n")
+                .append("Server ID: ").append(serverID).append("\n")
+                .append("Method: ").append(method).append("\n")
+                .append("URI: ").append(uri).append("\n")
+                .append("Path: ").append(path).append("\n")
+                .append("Client IP: ").append(clientIP).append("\n")
+                .append("User-Agent: ").append(userAgent).append("\n")
+                .append("Device Info: ").append(deviceInfo).append("\n")
+                .append("Location: ").append(location).append("\n")
+                .append("Accept-Language: ").append(acceptLanguage).append("\n")
+                .append("Referrer: ").append(referrer).append("\n")
+                .append("Accept Media Types: ").append(acceptMediaTypes).append("\n")
+                .append("Query Parameters: ").append(queryParameters).append("\n")
+                .append("Headers: ").append(headers).append("\n")
+                .append("Content-Type: ").append(contentType).append("\n")
+                .append("Content-Length: ").append(contentLength).append("\n")
+                .append("=============================================\n");
 
         logger.infof(logMessage.toString());
+
+        // Persiste no banco de dados
+        try {
+            Metadata metadata = new Metadata(
+                timestamp,
+                serverID,
+                method,
+                uri,
+                path,
+                clientIP,
+                userAgent,
+                deviceInfo,
+                location,
+                acceptLanguage,
+                referrer,
+                acceptMediaTypes,
+                queryParameters,
+                headers,
+                contentType,
+                contentLength
+            );
+
+            Logs logs = new Logs(
+                LocalDateTime.now(ZoneId.of("America/Sao_Paulo")),
+                metadata
+            );
+
+            logsRepository.persist(logs);
+        } catch (Exception e) {
+            logger.errorf("Erro ao persistir log: %s", e.getMessage());
+        }
     }
 
     /**

@@ -54,15 +54,20 @@ document.querySelectorAll('.method-btn').forEach(btn => {
 });
 
 // ===== TOTP =====
-document.getElementById('totp-code')?.addEventListener('input', function (e) {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-    e.target.value = value;
+document.addEventListener('DOMContentLoaded', () => {
+    const totpCodeInput = document.getElementById('totp-code');
+    if (totpCodeInput) {
+        totpCodeInput.addEventListener('input', function (e) {
+            const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+            e.target.value = value;
 
-    // Auto-submit ao completar 6 dígitos
-    if (value.length === 6) {
-        setTimeout(() => {
-            document.getElementById('totp-form').dispatchEvent(new Event('submit'));
-        }, 200);
+            // Auto-submit ao completar 6 dígitos
+            if (value.length === 6) {
+                setTimeout(() => {
+                    submitTOTP({ preventDefault: () => {} });
+                }, 300);
+            }
+        });
     }
 });
 
@@ -131,6 +136,7 @@ async function submitTOTP(event) {
             },
             body: JSON.stringify({
                 method: 'totp',
+                // username: totpUsername,
                 totp: totp
             })
         }).then(response => {

@@ -369,24 +369,6 @@ body {
     background: rgba(0, 255, 156, 0.1);
 }
 
-.delete-btn {
-    background: transparent;
-    border: 1px solid var(--error-color);
-    color: var(--error-color);
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.delete-btn:hover {
-    background: rgba(255, 107, 107, 0.1);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
-}
-
 /* ===== MODAL ===== */
 .modal {
     display: none;

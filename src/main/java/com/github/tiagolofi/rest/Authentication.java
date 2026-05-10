@@ -145,13 +145,16 @@ public class Authentication {
 
         totpRepository.delete("value", codigo.value());
 
+        System.out.println(codigo);
+        System.out.println(codigo.expiresAt().getExpirationDate());
+
         if (!codigo.expiresAt().isValid()) {
             return Response.status(Response.Status.UNAUTHORIZED)
                 .entity("Código TOTP expirado")
                 .build();
         }
 
-        User user = userRepository.find("username", loginRequest.username()).firstResult();
+        User user = userRepository.find("username", codigo.username()).firstResult();
 
         String token = methods.getToken(user.username(), user.roles());
 

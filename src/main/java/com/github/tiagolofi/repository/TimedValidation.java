@@ -12,6 +12,10 @@ public class TimedValidation {
         this.expirationDate = expirationDate;
     }
 
+    public void setExpirationDate(LocalDateTime expirationDate) {
+        this.expirationDate = expirationDate;
+    }
+
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }

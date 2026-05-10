@@ -16,4 +16,6 @@ public.key=MIICIjANBgk
 
 ## Easy Password
 
-![](exemplo.webm)
+<video width="640" height="360" controls>
+  <source src="exemplo.webm" type="video/webm">
+</video>

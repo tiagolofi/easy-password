@@ -53,6 +53,7 @@ public class Services {
             .findByOwner(jwtToken.getName())
             .stream()
             .map(s -> s.name())
+            .sorted()
             .toList();
     }
 

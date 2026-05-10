@@ -96,7 +96,7 @@ public class LogAccessFilter implements ContainerRequestFilter {
                 .append("Content-Length: ").append(contentLength).append("\n")
                 .append("=============================================\n");
 
-        logger.infof(logMessage.toString());
+        // logger.infof(logMessage.toString());
 
         // Persiste no banco de dados
         try {

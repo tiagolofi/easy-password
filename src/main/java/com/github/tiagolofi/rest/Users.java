@@ -31,7 +31,8 @@ public class Users {
         try {
             User newUser = user
                 .withPin(criptoUtils.sha256(user.pin()))
-                .withPassword(criptoUtils.encrypt(user.password()));
+                .withPassword(criptoUtils.encrypt(user.password()))
+                .withDefaultRoles();
 
             userRepository.persist(newUser);
 

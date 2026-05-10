@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Header -->
@@ -20,6 +22,12 @@
                     <button type="button" class="btn-add-item" onclick="openAddModal()">
                         <i class="fa-solid fa-plus"></i> Adicionar
                     </button>
+                    {#if isAdmin}
+                    <button type="button" class="btn-add-user" onclick="openUserModal()">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Novo Usuário
+                    </button>
+                    {/if}
                     <button type="button" class="btn-logout" onclick="logout()">
                         <i class="fa-solid fa-sign-out-alt"></i> Sair
                     </button>
@@ -48,29 +56,76 @@
             <form id="add-item-form" onsubmit="submitItem(event)">
                 <div class="form-group">
                     <label for="service-name">Nome do Serviço</label>
-                    <input 
-                        type="text"
-                        id="service-name"
-                        name="service"
-                        placeholder="ex: Gmail, GitHub"
-                        required
-                    >
+                    <input type="text" id="service-name" name="service" placeholder="ex: Gmail, GitHub" required>
                 </div>
 
                 <div class="form-group">
                     <label for="service-password">Senha</label>
-                    <input 
-                        type="password"
-                        id="service-password"
-                        name="password"
-                        placeholder="Digite a senha"
-                        required
-                    >
+                    <input type="password" id="service-password" name="password" placeholder="Digite a senha" required>
                 </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancelar</button>
                     <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== ADD USER MODAL ===== -->
+    <div class="modal" id="add-user-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Usuário</h2>
+
+                <button type="button" class="modal-close" onclick="closeUserModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="add-user-form" onsubmit="submitUser(event)">
+                <div class="form-group">
+                    <label for="user-username">
+                        Username
+                    </label>
+
+                    <input type="text" id="user-username" placeholder="Digite o username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-password">
+                        Senha
+                    </label>
+
+                    <input type="password" id="user-password" placeholder="Digite a senha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-telegram-id">
+                        Telegram ID
+                    </label>
+
+                    <input type="text" id="user-telegram-id" placeholder="Digite o Telegram ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-pin">
+                        PIN de 6 dígitos
+                    </label>
+
+                    <input type="password" id="user-pin" maxlength="6" inputmode="numeric" placeholder="000000"
+                        required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeUserModal()">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Criar Usuário
+                    </button>
                 </div>
             </form>
         </div>
@@ -87,15 +142,8 @@
             <form id="pin-form" onsubmit="validatePinAndDecrypt(event)">
                 <div class="form-group">
                     <label for="pin-input">PIN de 6 dígitos</label>
-                    <input 
-                        type="password"
-                        id="pin-input"
-                        name="pin"
-                        placeholder="••••••"
-                        maxlength="6"
-                        inputmode="numeric"
-                        required
-                    >
+                    <input type="password" id="pin-input" name="pin" placeholder="••••••" maxlength="6"
+                        inputmode="numeric" required>
                     <small class="help-text">Digite apenas números</small>
                 </div>
 
@@ -126,4 +174,5 @@
 
     <script src="/home.js"></script>
 </body>
+
 </html>

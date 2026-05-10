@@ -1,7 +1,6 @@
 package com.github.tiagolofi.rest;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.jboss.resteasy.reactive.RestCookie;
 
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.repository.ServiceRepository;
@@ -20,6 +19,8 @@ import jakarta.ws.rs.core.MediaType;
 @Path("/home")
 public class Home {
 
+    private static final String ROLE_ADMIN = "admin";
+
     @Inject
     ServiceRepository serviceRepository;
 
@@ -31,14 +32,15 @@ public class Home {
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance home();
+        public static native TemplateInstance home(boolean isAdmin);
     }
     
     @GET
     @Produces(MediaType.TEXT_HTML)
     @RolesAllowed({"user"})
-    public TemplateInstance homePage(@RestCookie("Authorization") String token) {
-        return Templates.home();
+    public TemplateInstance homePage() {
+        boolean isAdmin = jwt.getGroups().contains(ROLE_ADMIN);
+        return Templates.home(isAdmin);
     }
 
 }

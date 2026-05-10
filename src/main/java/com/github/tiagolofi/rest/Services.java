@@ -50,24 +50,26 @@ public class Services {
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> listar() {
         return serviceRepository
-            .listAll()
+            .findByOwner(jwtToken.getName())
             .stream()
             .map(s -> s.name())
             .toList();
     }
 
     @POST
-    @RolesAllowed({"admin"})
+    @RolesAllowed({"user"})
     @Path("/adicionar")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addItem(Service service) throws Exception {
-        var newService = service.withPassword(criptoUtils.encrypt(service.password()));
+        var newService = service
+            .withOwner(jwtToken.getName())
+            .withPassword(criptoUtils.encrypt(service.password()));
         serviceRepository.persist(newService);
         return Response.created(null).build();
     }
 
     @DELETE
-    @RolesAllowed({"admin"})
+    @RolesAllowed({"user"})
     @Path("/apagar")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteItem(@RestQuery String name) {
@@ -76,7 +78,7 @@ public class Services {
     }
 
     @POST
-    @RolesAllowed({"admin"})
+    @RolesAllowed({"user"})
     @Path("/mostrar-senha")
     @Produces(MediaType.TEXT_PLAIN)
     public Response viewPassword(@RestQuery String name, @RestHeader("X-PIN-SECURITY") String pin) throws Exception {

@@ -3,6 +3,7 @@ package com.github.tiagolofi.rest;
 import java.net.URI;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import com.github.tiagolofi.authentication.AuthenticationMethods;
@@ -52,6 +53,9 @@ public class Authentication {
     @Inject
     CriptoUtils criptoUtils;
 
+    @Inject
+    Logger log;
+
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
         public static native TemplateInstance authentication();
@@ -62,46 +66,6 @@ public class Authentication {
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance getLogin() {
         return Templates.authentication();
-    }
-
-    @POST
-    @PermitAll
-    @Path("/totp")
-    public Response generateTotp(@RestQuery String username) {
-        // Consulta o chatId do usuário
-        User user = userRepository.find("username", username).firstResult();
-        if (user == null) {
-            return Response.status(Response.Status.FORBIDDEN)
-                .entity("Requisição não permitida.")
-                .build();
-        }
-
-        // Gera o código TOTP, salva no banco e envia para o Telegram
-        Totp codigo = methods.getTotp(username);
-        totpRepository.persist(codigo);
-
-        telegram.send(configs.telegramBotToken(), user.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
-        return Response.status(Response.Status.CREATED).build();
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("user")
-    @Path("/logout")
-    public Response logout() {
-        NewCookie expiredAuthCookie = new NewCookie.Builder("Authorization")
-                .value("")
-                .path("/")
-                .maxAge(0)
-                .httpOnly(true)
-                .secure(true)
-                .build();
-
-        return Response
-                .seeOther(URI.create("/login"))
-                .cookie(expiredAuthCookie)
-                .build();
     }
 
     @POST
@@ -132,6 +96,33 @@ public class Authentication {
                 .entity("Erro ao fazer login")
                 .build();
         }
+    }
+
+    @POST
+    @PermitAll
+    @Path("/totp")
+    public Response generateTotp(@RestQuery String username) {
+        // Consulta o chatId do usuário
+        User user = userRepository.find("username", username).firstResult();
+        if (user == null) {
+            return Response.status(Response.Status.FORBIDDEN)
+                .entity("Requisição não permitida.")
+                .build();
+        }
+
+        // Gera o código TOTP, salva no banco e envia para o Telegram
+        Totp codigo = methods.getTotp(username);
+        totpRepository.persist(codigo);
+
+        try {
+            telegram.send(configs.telegramBotToken(), user.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
+        } catch(Exception e) {
+            log.errorf("Código não enviado para: %s", user.telegramChatId());
+            totpRepository.delete("value", codigo.value());
+            return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+        }
+        
+        return Response.status(Response.Status.CREATED).build();
     }
 
     private Response loginTotp(LoginRequest loginRequest) {
@@ -206,6 +197,26 @@ public class Authentication {
 
         return Response.status(Response.Status.UNAUTHORIZED)
                 .entity("Usuário ou senha inválidos")
+                .build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("user")
+    @Path("/logout")
+    public Response logout() {
+        NewCookie expiredAuthCookie = new NewCookie.Builder("Authorization")
+                .value("")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .build();
+
+        return Response
+                .seeOther(URI.create("/login"))
+                .cookie(expiredAuthCookie)
                 .build();
     }
 }

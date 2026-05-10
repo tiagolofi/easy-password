@@ -22,4 +22,8 @@ public record User(
     public User withPassword(Password password) {
         return new User(this.id, this.username, this.telegramChatId, password, this.pin, this.roles);
     }
+
+    public User withDefaultRoles() {
+        return new User(this.id, this.username, this.telegramChatId, this.password, this.pin, Set.of("user"));
+    }
 }

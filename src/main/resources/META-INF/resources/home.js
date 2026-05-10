@@ -351,3 +351,85 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Home page loaded');
     loadServices();
 });
+
+// ===== ADICIONAR USUÁRIO ====
+
+// ===== USER MODAL =====
+function openUserModal() {
+    document.getElementById('add-user-form').reset();
+    document.getElementById('add-user-modal').classList.add('show');
+
+    setTimeout(() => {
+        document.getElementById('user-username').focus();
+    }, 100);
+}
+
+function closeUserModal() {
+    document.getElementById('add-user-modal').classList.remove('show');
+    document.getElementById('add-user-form').reset();
+}
+
+// ===== ADD USER ==== 
+async function submitUser(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('user-username').value.trim();
+    const password = document.getElementById('user-password').value;
+    const telegramId = document.getElementById('user-telegram-id').value.trim();
+    const pin = document.getElementById('user-pin').value.trim();
+
+    if (!username) {
+        showNotification('Digite o username', 'error');
+        return;
+    }
+
+    if (!password) {
+        showNotification('Digite a senha', 'error');
+        return;
+    }
+
+    if (!telegramId) {
+        showNotification('Digite o Telegram ID', 'error');
+        return;
+    }
+
+    if (!/^\d{6}$/.test(pin)) {
+        showNotification('O PIN deve conter 6 dígitos', 'error');
+        return;
+    }
+
+    try {
+        const pinHash = await sha256(pin);
+
+        const payload = {
+            username: username,
+            password: password,
+            telegramChatId: telegramId,
+            pin: pinHash
+        };
+
+        const response = await fetch('/users/adicionar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao adicionar usuário');
+        }
+
+        showNotification('Usuário cadastrado com sucesso! ✓', 'success');
+        closeUserModal();
+
+    } catch (error) {
+        console.error(error);
+        showNotification(error.message || 'Erro ao cadastrar usuário', 'error');
+    }
+}
+
+// ===== USER PIN FORMATTING =====
+document.getElementById('user-pin')?.addEventListener('input', function (e) {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+});

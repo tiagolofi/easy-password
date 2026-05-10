@@ -681,3 +681,110 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent-green);
 }
+
+/* ===== NEW USER BUTTON ===== */
+.btn-add-user {
+    padding: 11px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #ffffff;
+
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add-user:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.btn-add-user:active {
+    transform: translateY(0);
+}
+
+
+/* ===== MODAL ACTIONS ===== */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+
+/* ===== PRIMARY BUTTON ===== */
+.btn-primary {
+    padding: 11px 20px;
+    border-radius: 8px;
+    border: none;
+
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: all 0.3s ease;
+
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dim));
+    color: var(--primary-dark);
+
+    box-shadow: 0 4px 15px rgba(0, 255, 156, 0.2);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 25px rgba(0, 255, 156, 0.35);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+
+/* ===== SECONDARY BUTTON ===== */
+.btn-secondary {
+    padding: 11px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: all 0.3s ease;
+
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+
+    backdrop-filter: blur(8px);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+
+    background: rgba(255, 255, 255, 0.06);
+
+    border-color: rgba(255, 255, 255, 0.15);
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}

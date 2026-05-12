@@ -82,7 +82,7 @@ public class Services {
     @Path("/mostrar-senha")
     @Produces(MediaType.TEXT_PLAIN)
     public Response viewPassword(@RestQuery String name, @RestHeader("X-PIN-SECURITY") String pin) throws Exception {
-        Service service = serviceRepository.find("name", name).firstResult();
+        Service service = serviceRepository.findByName(name);
 
         User user = userRepository.findByUsername(jwtToken.getName());
 

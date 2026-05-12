@@ -73,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function enviarCodigoTOTP() {
     const username = document.getElementById('username-totp').value.trim();
+    const password = document.getElementById('password-senha-totp').value;
+    const hashedPassword = await sha256(password);
 
     if (!username) {
         showError('Digite seu usuário');
@@ -80,16 +82,29 @@ async function enviarCodigoTOTP() {
         return;
     }
 
+    if (!password) {
+        showError('Digite sua senha para enviar o código TOTP');
+        document.getElementById('password-senha-totp').focus();
+        return;
+    }
+
     try {
         disableButton('#btn-enviar-totp');
         hideError();
 
-        const response = await fetch(`/auth/totp?username=${encodeURIComponent(username)}`, {
-            method: 'POST'
+        const response = await fetch(`/auth/totp`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: hashedPassword
+            })
         });
 
         if (!response.ok) {
-            throw new Error('Usuário não encontrado ou erro ao gerar código TOTP');
+            throw new Error('Usuário ou senha inválidos para envio do código TOTP');
         }
 
         // Habilita input do código TOTP

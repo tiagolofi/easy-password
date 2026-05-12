@@ -4,9 +4,8 @@ import java.net.URI;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.RestQuery;
 
-import com.github.tiagolofi.authentication.AuthenticationMethods;
+import com.github.tiagolofi.authentication.AuthEngine;
 import com.github.tiagolofi.authentication.CriptoUtils;
 import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
@@ -38,7 +37,7 @@ import jakarta.ws.rs.core.Response;
 public class Authentication {
 
     @Inject
-    AuthenticationMethods methods;
+    AuthEngine auth;
 
     @Inject
     EasyPasswordConfigs configs;
@@ -104,18 +103,18 @@ public class Authentication {
     @POST
     @PermitAll
     @Path("/totp")
-    public Response generateTotp(@RestQuery String username) {
-        // Consulta o chatId do usuário
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            return Response.status(Response.Status.FORBIDDEN)
-                .entity("Requisição não permitida.")
+    public Response generateTotp(LoginRequest loginRequest) {
+        if (!validarSenha(loginRequest)) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity("Usuário ou senha inválidos")
                 .build();
         }
 
         // Gera o código TOTP, salva no banco e envia para o Telegram
-        Totp codigo = methods.getTotp(username);
+        Totp codigo = auth.getTotp(loginRequest.username());
         totpRepository.persist(codigo);
+
+        User user = userRepository.findByUsername(loginRequest.username());
 
         try {
             telegram.send(configs.telegramBotToken(), user.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
@@ -129,7 +128,7 @@ public class Authentication {
     }
 
     private Response loginTotp(LoginRequest loginRequest) {
-        Totp codigo = totpRepository.find("value", loginRequest.totp()).firstResult();
+        Totp codigo = totpRepository.findByValue(loginRequest.totp());
 
         if (codigo == null || !codigo.value().equals(loginRequest.totp())) {
             return Response.status(Response.Status.UNAUTHORIZED)
@@ -145,9 +144,9 @@ public class Authentication {
                 .build();
         }
 
-        User user = userRepository.find("username", codigo.username()).firstResult();
+        User user = userRepository.findByUsername(codigo.username());
 
-        String token = methods.getToken(user.username(), user.roles());
+        String token = auth.getToken(user);
 
         NewCookie cookie = new NewCookie.Builder("Authorization")
             .value(token)
@@ -162,11 +161,30 @@ public class Authentication {
     }
 
     private Response loginPassword(LoginRequest loginRequest) {
-        User user = userRepository.find("username", loginRequest.username()).firstResult();
-        if (user == null) {
+        if (!validarSenha(loginRequest)) {
             return Response.status(Response.Status.UNAUTHORIZED)
                 .entity("Usuário ou senha inválidos")
                 .build();
+        }
+
+        String token = auth.getToken(userRepository.findByUsername(loginRequest.username()));
+            
+        NewCookie cookie = new NewCookie.Builder("Authorization")
+            .value(token)
+            .path("/")
+            .httpOnly(true)
+            .secure(true)
+            .sameSite(NewCookie.SameSite.STRICT)
+            .maxAge(1800)
+            .build();
+
+        return Response.seeOther(URI.create("/home")).cookie(cookie).build();
+    }
+
+    private boolean validarSenha(LoginRequest loginRequest) {
+        User user = userRepository.findByUsername(loginRequest);
+        if (user == null) {
+            throw new IllegalArgumentException("Usuário ou senha inválidos"); 
         }
 
         String hashedPassword = null;
@@ -178,26 +196,11 @@ public class Authentication {
         }
 
         try {
-            if (hashedPassword != null && hashedPassword.equals(loginRequest.password())) {
-                String token = methods.getToken(user.username(), user.roles());
-                NewCookie cookie = new NewCookie.Builder("Authorization")
-                    .value(token)
-                    .path("/")
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite(NewCookie.SameSite.STRICT)
-                    .maxAge(1800)
-                    .build();
-
-                return Response.seeOther(URI.create("/home")).cookie(cookie).build();
-            }
+            return hashedPassword != null && hashedPassword.equals(loginRequest.password());
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return Response.status(Response.Status.UNAUTHORIZED)
-                .entity("Usuário ou senha inválidos")
-                .build();
+        return false;
     }
 
     @POST

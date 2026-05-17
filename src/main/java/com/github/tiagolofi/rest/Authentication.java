@@ -167,7 +167,9 @@ public class Authentication {
                 .build();
         }
 
-        String token = auth.getToken(userRepository.findByUsername(loginRequest.username()));
+        User user = userRepository.findByUsername(loginRequest.username());
+
+        String token = auth.getToken(user);
             
         NewCookie cookie = new NewCookie.Builder("Authorization")
             .value(token)

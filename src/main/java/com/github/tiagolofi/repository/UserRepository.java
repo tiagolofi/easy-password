@@ -16,4 +16,8 @@ public class UserRepository implements PanacheMongoRepository<User> {
         return find("username", username).firstResult();
     }
 
+    public boolean exists(String username) {
+        return count("username", username) > 0;
+    }
+
 }

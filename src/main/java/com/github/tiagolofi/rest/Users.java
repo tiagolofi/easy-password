@@ -34,6 +34,10 @@ public class Users {
                 .withPassword(criptoUtils.encrypt(user.password()))
                 .withDefaultRoles();
 
+            if (userRepository.exists(newUser.username())) {
+                return Response.status(Response.Status.CONFLICT).build();
+            }
+
             userRepository.persist(newUser);
 
             return Response.status(Response.Status.CREATED).build();

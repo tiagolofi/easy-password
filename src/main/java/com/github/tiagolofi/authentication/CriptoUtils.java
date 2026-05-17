@@ -28,62 +28,46 @@ public class CriptoUtils {
         }
     }
 
-    public Password encrypt(Password password) throws Exception {
-        byte[] passPhrase = new byte[16];
-        new SecureRandom().nextBytes(passPhrase);
+    private byte[] generateSalt() {
+        byte[] salt = new byte[16];
+        new SecureRandom().nextBytes(salt);
+        return salt;
+    }
 
-        SecretKeySpec secretKey = new SecretKeySpec(passPhrase, "AES");
+    public Password encrypt(Password password) throws Exception {
+        byte[] key = new byte[32];
+        new SecureRandom().nextBytes(key);
+
+        SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
         Cipher cipher = Cipher.getInstance("AES");
 
+        byte[] salt = generateSalt();
+        
+        String base64Salt = Base64.getEncoder().encodeToString(salt);
+
+        String combined = password.getValue() + base64Salt;
+
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-        byte[] encrypted = cipher.doFinal(password.getValue().getBytes());
-        
+        byte[] encrypted = cipher.doFinal(combined.getBytes(StandardCharsets.UTF_8));
+
         String base64Encrypted = Base64.getEncoder().encodeToString(encrypted);
-        String base64Passphrase = Base64.getEncoder().encodeToString(passPhrase);
-        
-        String mixedBases = interleaveBase64(base64Encrypted, base64Passphrase);
-        return new Password(mixedBases);
+
+        // Cometendo o crime de armazenar a chave de criptografia junto com a senha criptografada, mas pelo menos é uma chave aleatória e não fixa
+        String base64Key = Base64.getEncoder().encodeToString(key);
+
+        return new Password(base64Encrypted, base64Key, base64Salt);
     }
 
     public String decrypt(Password password) throws Exception {
-        String[] parts = deinterleaveBase64(password.value);
-        byte[] passPhrase = Base64.getDecoder().decode(parts[1]);
-        SecretKeySpec secretKey = new SecretKeySpec(passPhrase, "AES");
+        byte[] key = Base64.getDecoder().decode(password.getKey());
+        SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
         Cipher cipher = Cipher.getInstance("AES");
 
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
-        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(parts[0]));
-        return new String(decrypted);
-    }
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(password.getValue()));
 
-    private String interleaveBase64(String base64Encrypted, String base64Passphrase) {
-        StringBuilder mixed = new StringBuilder();
-        int maxLength = Math.max(base64Encrypted.length(), base64Passphrase.length());
+        String decryptedString = new String(decrypted, StandardCharsets.UTF_8);
         
-        for (int i = 0; i < maxLength; i++) {
-            if (i < base64Encrypted.length()) {
-                mixed.append(base64Encrypted.charAt(i));
-            }
-            if (i < base64Passphrase.length()) {
-                mixed.append(base64Passphrase.charAt(i));
-            }
-        }
-        
-        return mixed.toString();
-    }
-
-    private String[] deinterleaveBase64(String mixed) {
-        StringBuilder encrypted = new StringBuilder();
-        StringBuilder passphrase = new StringBuilder();
-        
-        for (int i = 0; i < mixed.length(); i++) {
-            if (i % 2 == 0) {
-                encrypted.append(mixed.charAt(i));
-            } else {
-                passphrase.append(mixed.charAt(i));
-            }
-        }
-        
-        return new String[]{encrypted.toString(), passphrase.toString()};
+        return decryptedString.substring(0, decryptedString.indexOf(password.getSalt()));
     }
 }

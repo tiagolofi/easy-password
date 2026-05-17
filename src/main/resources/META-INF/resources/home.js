@@ -209,7 +209,7 @@ async function submitItem(event) {
 
     const item = {
         name: serviceName,
-        password: password
+        password: { value: password }
     };
 
     try {

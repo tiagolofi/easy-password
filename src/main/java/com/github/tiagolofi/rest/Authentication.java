@@ -220,7 +220,7 @@ public class Authentication {
                 .build();
 
         return Response
-                .seeOther(URI.create("/login"))
+                .seeOther(URI.create("/auth"))
                 .cookie(expiredAuthCookie)
                 .build();
     }

@@ -141,6 +141,7 @@
             </div>
 
             <form id="pin-form" onsubmit="validatePinAndDecrypt(event)">
+                <input type="hidden" name="{inject:csrf.parameterName}" value="{inject:csrf.token}" /> 
                 <div class="form-group">
                     <label for="pin-input">PIN de 6 dígitos</label>
                     <input type="password" id="pin-input" name="pin" placeholder="••••••" maxlength="6"

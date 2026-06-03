@@ -70,7 +70,7 @@ function renderServices() {
                 <div class="item-actions">
                     <button type="button" class="item-action-btn btn-view" 
                             onclick="openPinModal('${escapeHtml(service)}')"
-                            title="Copiar senha">
+                            title="Baixar senha">
                         <i class="fa-solid fa-unlock"></i>
                     </button>
                     <button type="button" class="item-action-btn btn-delete" 
@@ -149,11 +149,19 @@ async function validatePinAndDecrypt(event) {
             throw new Error('PIN inválido');
         }
 
-        const decryptedPassword = await response.text();
+        const blob = await response.blob();
 
-        // Copia automaticamente a senha descriptografada
-        await navigator.clipboard.writeText(decryptedPassword);
-        showNotification('Senha descriptografada e copiada! ✓', 'success');
+        // Faz download do arquivo .bin criptografado
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name + '.bin';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showNotification('Arquivo criptografado baixado com sucesso! ✓', 'success');
 
         closePinModal();
     } catch (error) {

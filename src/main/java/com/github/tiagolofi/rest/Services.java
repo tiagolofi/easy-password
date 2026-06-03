@@ -80,15 +80,18 @@ public class Services {
     @POST
     @RolesAllowed({"user"})
     @Path("/mostrar-senha")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces("application/octet-stream")
     public Response viewPassword(@RestQuery String name, @RestHeader("X-PIN-SECURITY") String pin) throws Exception {
         Service service = serviceRepository.findByName(name);
 
         User user = userRepository.findByUsername(jwtToken.getName());
 
         if (pin.equals(user.pin())) {
-            return Response.ok(criptoUtils.decrypt(service.password())).build();
-        }
+            String decryptedPassword = criptoUtils.decrypt(service.password());
+            return Response.ok(decryptedPassword)
+                .header("Content-Disposition", "attachment; filename=\"" + name + ".bin\"")
+                .build();        
+            }
 
         throw new SecurityException("PIN inválido");
     }

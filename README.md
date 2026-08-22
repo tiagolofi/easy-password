@@ -19,3 +19,9 @@ public.key=MIICIjANBgk
 <video width="640" height="360" controls>
   <source src="exemplo.webm" type="video/webm">
 </video>
+
+## Suporte ao GPG
+
+```bas
+gpg --decrypt ARQUIVO.pwd.gpg
+```

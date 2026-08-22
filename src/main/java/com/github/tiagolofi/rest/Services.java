@@ -44,6 +44,9 @@ public class Services {
     @Inject
     JsonWebToken jwtToken;
 
+    @Inject
+    GpgService gpgService;
+
     @GET
     @RolesAllowed({"user"})
     @Path("listar")
@@ -82,16 +85,24 @@ public class Services {
     @Path("/mostrar-senha")
     @Produces("application/octet-stream")
     public Response viewPassword(@RestQuery String name, @RestHeader("X-PIN-SECURITY") String pin) throws Exception {
-        Service service = serviceRepository.findByName(name);
-
         User user = userRepository.findByUsername(jwtToken.getName());
 
         if (pin.equals(user.pin())) {
+            Service service = serviceRepository.findByName(name);
+
             String decryptedPassword = criptoUtils.decrypt(service.password());
-            return Response.ok(decryptedPassword)
-                .header("Content-Disposition", "attachment; filename=\"" + name + ".bin\"")
-                .build();        
-            }
+
+            byte[] encryptedPassword = gpgService.encrypt(
+                decryptedPassword.getBytes(),
+                name + ".pwd",
+                configs.passphrase()
+            );
+
+            return Response.ok(encryptedPassword)
+                .type("application/pgp-encrypted")
+                .header("Content-Disposition", "attachment; filename=\"" + name + ".pwd.gpg\"")
+                .build();
+        }
 
         throw new SecurityException("PIN inválido");
     }

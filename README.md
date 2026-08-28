@@ -4,24 +4,13 @@ Autenticação fácil para quem tem dificuldade de lembrar senhas
 
 ## Variáveis necessárias
 
-Api do Telegram
-- quarkus.rest-client.telegram.url=https://api.telegram.org/
-
-Token do Telegram
-- easy.password.telegram.bot-token=bot........................
-
-- Par de chaves RSA
-private.key=MIIJQwIBAD
-public.key=MIICIjANBgk
-
-## Easy Password
-
-<video width="640" height="360" controls>
-  <source src="exemplo.webm" type="video/webm">
-</video>
-
-## Suporte ao GPG
-
-```bas
-gpg --decrypt ARQUIVO.pwd.gpg
+```bash
+quarkus.rest-client.telegram.url=https://api.telegram.org/
+easy.password.telegram.bot-token=bot....
+private.key=MIIJQwIBAD...
+public.key=MIICIjANBgk...
 ```
+
+## Uso do GPG
+
+`gpg --decrypt arquivo.pwd.gpg`

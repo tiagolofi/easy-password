@@ -1,6 +1,7 @@
 package com.github.tiagolofi.rest;
 
 import java.net.URI;
+import java.time.temporal.ChronoUnit;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
@@ -19,6 +20,7 @@ import com.github.tiagolofi.repository.UserRepository;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.smallrye.common.annotation.RunOnVirtualThread;
+import io.smallrye.faulttolerance.api.RateLimit;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
@@ -66,6 +68,7 @@ public class Authentication {
     @GET
     @PermitAll
     @Produces(MediaType.TEXT_HTML)
+    @RateLimit(value = 5, window = 10, windowUnit = ChronoUnit.SECONDS)
     public TemplateInstance getLogin() {
         return Templates.authentication();
     }
@@ -75,6 +78,7 @@ public class Authentication {
     @Produces(MediaType.APPLICATION_JSON)
     @PermitAll
     @Path("/login")
+    @RateLimit(value = 5, window = 10, windowUnit = ChronoUnit.SECONDS)
     @RunOnVirtualThread
     public Response login(LoginRequest loginRequest) {
         try {

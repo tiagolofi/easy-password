@@ -1,7 +1,7 @@
 // ===== LOGIN SCRIPT =====
 
 let currentStage = 'selection';
-let totpUsername = '';
+let otpUsername = '';
 
 // ===== STAGE MANAGEMENT =====
 function showStage(stageName) {
@@ -16,9 +16,9 @@ function showStage(stageName) {
         hideError();
 
         // Focus no input apropriado
-        if (stageName === 'totp') {
+        if (stageName === 'otp') {
             setTimeout(() => {
-                document.getElementById('username-totp').focus();
+                document.getElementById('username-otp').focus();
             }, 100);
         } else if (stageName === 'senha') {
             setTimeout(() => {
@@ -30,10 +30,10 @@ function showStage(stageName) {
 
 function goBack() {
     showStage('selection');
-    totpUsername = '';
-    document.getElementById('username-totp').value = '';
-    document.getElementById('totp-code').value = '';
-    document.getElementById('totp-code').disabled = true;
+    otpUsername = '';
+    document.getElementById('username-otp').value = '';
+    document.getElementById('otp-code').value = '';
+    document.getElementById('otp-code').disabled = true;
 }
 
 // ===== SHA256 HASH =====
@@ -53,46 +53,46 @@ document.querySelectorAll('.method-btn').forEach(btn => {
     });
 });
 
-// ===== TOTP =====
+// ===== OTP =====
 document.addEventListener('DOMContentLoaded', () => {
-    const totpCodeInput = document.getElementById('totp-code');
-    if (totpCodeInput) {
-        totpCodeInput.addEventListener('input', function (e) {
+    const otpCodeInput = document.getElementById('otp-code');
+    if (otpCodeInput) {
+        otpCodeInput.addEventListener('input', function (e) {
             const value = e.target.value.replace(/\D/g, '').slice(0, 6);
             e.target.value = value;
 
             // Auto-submit ao completar 6 dígitos
             if (value.length === 6) {
                 setTimeout(() => {
-                    submitTOTP({ preventDefault: () => {} });
+                    submitOTP({ preventDefault: () => {} });
                 }, 300);
             }
         });
     }
 });
 
-async function enviarCodigoTOTP() {
-    const username = document.getElementById('username-totp').value.trim();
-    const password = document.getElementById('password-senha-totp').value;
+async function enviarCodigoOTP() {
+    const username = document.getElementById('username-otp').value.trim();
+    const password = document.getElementById('password-senha-otp').value;
     const hashedPassword = await sha256(password);
 
     if (!username) {
         showError('Digite seu usuário');
-        document.getElementById('username-totp').focus();
+        document.getElementById('username-otp').focus();
         return;
     }
 
     if (!password) {
-        showError('Digite sua senha para enviar o código TOTP');
-        document.getElementById('password-senha-totp').focus();
+        showError('Digite sua senha para enviar o código OTP');
+        document.getElementById('password-senha-otp').focus();
         return;
     }
 
     try {
-        disableButton('#btn-enviar-totp');
+        disableButton('#btn-enviar-otp');
         hideError();
 
-        const response = await fetch(`/auth/totp`, {
+        const response = await fetch(`/auth/otp`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -104,38 +104,38 @@ async function enviarCodigoTOTP() {
         });
 
         if (!response.ok) {
-            throw new Error('Usuário ou senha inválidos para envio do código TOTP');
+            throw new Error('Usuário ou senha inválidos para envio do código OTP');
         }
 
-        // Habilita input do código TOTP
-        const totpInput = document.getElementById('totp-code');
-        const totpGroup = document.getElementById('totp-input-group');
+        // Habilita input do código OTP
+        const otpInput = document.getElementById('otp-code');
+        const otpGroup = document.getElementById('otp-input-group');
 
-        totpGroup.classList.remove('hidden');
+        otpGroup.classList.remove('hidden');
 
-        totpInput.disabled = false;
-        totpInput.focus();
-        totpUsername = username;
+        otpInput.disabled = false;
+        otpInput.focus();
+        otpUsername = username;
 
-        showError('Código TOTP enviado para seu Telegram! ✓', 'success');
+        showError('Código OTP enviado para seu Telegram! ✓', 'success');
     } catch (error) {
         console.error(error);
-        showError(error.message || 'Erro ao enviar código TOTP');
-        enableButton('#btn-enviar-totp');
+        showError(error.message || 'Erro ao enviar código OTP');
+        enableButton('#btn-enviar-otp');
     }
 }
 
-async function submitTOTP(event) {
+async function submitOTP(event) {
     event.preventDefault();
 
-    const totp = document.getElementById('totp-code').value.trim();
+    const otp = document.getElementById('otp-code').value.trim();
 
-    if (!totp || totp.length !== 6) {
-        showError('Digite um código TOTP válido com 6 dígitos');
+    if (!otp || otp.length !== 6) {
+        showError('Digite um código OTP válido com 6 dígitos');
         return;
     }
 
-    if (!totpUsername) {
+    if (!otpUsername) {
         showError('Erro: Usuário não definido. Envie o código novamente.');
         return;
     }
@@ -150,23 +150,23 @@ async function submitTOTP(event) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                method: 'totp',
-                // username: totpUsername,
-                totp: totp
+                method: 'otp',
+                // username: otpUsername,
+                otp: otp
             })
         }).then(response => {
             if (response.ok) {
                 window.location.href = '/home';
             } else {
                 const errorText = response.text();
-                showError(errorText || 'Código TOTP inválido ou expirado');
+                showError(errorText || 'Código OTP inválido ou expirado');
                 enableButton('button[type="submit"]');
             }
         });
 
     } catch (error) {
         console.error(error);
-        showError('Erro ao validar código TOTP');
+        showError('Erro ao validar código OTP');
         enableButton('button[type="submit"]');
     }
 }

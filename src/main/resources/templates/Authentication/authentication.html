@@ -34,13 +34,13 @@
                         <button
                             type="button"
                             class="method-btn"
-                            data-method="TOTP">
+                            data-method="OTP">
 
                             <div class="method-icon">
                                 <i class="fa-regular fa-clock"></i>
                             </div>
 
-                            <div class="method-name">TOTP</div>
+                            <div class="method-name">OTP</div>
                             <div class="method-desc">6 dígitos</div>
                         </button>
 
@@ -61,8 +61,8 @@
                 </div>
             </div>
 
-            <!-- Stage TOTP -->
-            <div id="stage-totp" class="stage">
+            <!-- Stage OTP -->
+            <div id="stage-otp" class="stage">
 
                 <div class="back-button">
                     <button
@@ -76,16 +76,16 @@
 
                 <div class="form-container">
 
-                    <h2>Autenticação TOTP</h2>
+                    <h2>Autenticação OTP</h2>
 
-                    <form id="totp-form" onsubmit="submitTOTP(event)">
+                    <form id="otp-form" onsubmit="submitOTP(event)">
 
                         <div class="form-group">
-                            <label for="username-totp">Usuário</label>
+                            <label for="username-otp">Usuário</label>
 
                             <input
                                 type="text"
-                                id="username-totp"
+                                id="username-otp"
                                 name="username"
                                 placeholder="Digite seu usuário"
                                 required>
@@ -101,8 +101,8 @@
 
                                 <input
                                     type="password"
-                                    id="password-senha-totp"
-                                    name="password-totp"
+                                    id="password-senha-otp"
+                                    name="password-otp"
                                     placeholder="Digite sua senha"
                                     autocomplete="current-password"
                                     required>
@@ -110,7 +110,7 @@
                                 <button
                                     type="button"
                                     class="toggle-password"
-                                    onclick="togglePasswordVisibility('password-senha-totp')">
+                                    onclick="togglePasswordVisibility('password-senha-otp')">
 
                                     <i class="fa-solid fa-eye-slash"></i>
                                 </button>
@@ -120,20 +120,20 @@
                         <button
                             type="button"
                             class="btn-primary"
-                            id="btn-enviar-totp"
-                            onclick="enviarCodigoTOTP()">
+                            id="btn-enviar-otp"
+                            onclick="enviarCodigoOTP()">
 
                             Enviar código
                         </button>
 
-                        <div class="form-group hidden" id="totp-input-group">
-                            <label for="totp-code">
+                        <div class="form-group hidden" id="otp-input-group">
+                            <label for="otp-code">
                                 Digite os 6 dígitos
                             </label>
 
                             <input
                                 type="text"
-                                id="totp-code"
+                                id="otp-code"
                                 placeholder="000000"
                                 maxlength="6"
                                 inputmode="numeric"

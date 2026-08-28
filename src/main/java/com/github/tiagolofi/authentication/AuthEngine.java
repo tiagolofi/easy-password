@@ -6,7 +6,7 @@ import java.time.ZoneId;
 import java.util.Random;
 
 import com.github.tiagolofi.repository.TimedValidation;
-import com.github.tiagolofi.repository.Totp;
+import com.github.tiagolofi.repository.Otp;
 import com.github.tiagolofi.repository.User;
 
 import io.smallrye.jwt.build.Jwt;
@@ -28,10 +28,10 @@ public class AuthEngine {
             .encrypt();
     }
 
-    public Totp getTotp(String username) {
+    public Otp getOtp(String username) {
         LocalDateTime expirationDate = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")).plusSeconds(EXPIRATION_TIME_SECONDS);
 
-        return new Totp(
+        return new Otp(
             String.valueOf(99999 + new Random().nextInt(1, 900000)), 
             username,
             new TimedValidation(expirationDate)

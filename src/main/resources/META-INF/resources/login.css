@@ -264,8 +264,8 @@ body {
     width: 100%;
 }
 
-/* ==== TOTP ==== */
-#totp-input-group {
+/* ==== OTP ==== */
+#otp-input-group {
     margin-top: 1.5rem;
 }
 

@@ -11,8 +11,8 @@ import com.github.tiagolofi.clients.Telegram;
 import com.github.tiagolofi.configs.EasyPasswordConfigs;
 import com.github.tiagolofi.models.AuthenticationMethod;
 import com.github.tiagolofi.models.LoginRequest;
-import com.github.tiagolofi.repository.Totp;
-import com.github.tiagolofi.repository.TotpRepository;
+import com.github.tiagolofi.repository.Otp;
+import com.github.tiagolofi.repository.OtpRepository;
 import com.github.tiagolofi.repository.User;
 import com.github.tiagolofi.repository.UserRepository;
 
@@ -47,7 +47,7 @@ public class Authentication {
     Telegram telegram;
 
     @Inject
-    TotpRepository totpRepository;
+    OtpRepository otpRepository;
     
     @Inject
     UserRepository userRepository;
@@ -81,8 +81,8 @@ public class Authentication {
             AuthenticationMethod authMethod = AuthenticationMethod.fromMethod(loginRequest.method());
             
             switch (authMethod) {
-                case TOTP:
-                    return loginTotp(loginRequest);
+                case OTP:
+                    return loginOtp(loginRequest);
                 case PASSWORD:
                     return loginPassword(loginRequest);
                 default:
@@ -102,17 +102,17 @@ public class Authentication {
 
     @POST
     @PermitAll
-    @Path("/totp")
-    public Response generateTotp(LoginRequest loginRequest) {
+    @Path("/otp")
+    public Response generateOtp(LoginRequest loginRequest) {
         if (!validarSenha(loginRequest)) {
             return Response.status(Response.Status.UNAUTHORIZED)
                 .entity("Usuário ou senha inválidos")
                 .build();
         }
 
-        // Gera o código TOTP, salva no banco e envia para o Telegram
-        Totp codigo = auth.getTotp(loginRequest.username());
-        totpRepository.persist(codigo);
+        // Gera o código OTP, salva no banco e envia para o Telegram
+        Otp codigo = auth.getOtp(loginRequest.username());
+        otpRepository.persist(codigo);
 
         User user = userRepository.findByUsername(loginRequest.username());
 
@@ -120,27 +120,27 @@ public class Authentication {
             telegram.send(configs.telegramBotToken(), user.telegramChatId(), "Seu código de autenticação é: " + codigo.value());
         } catch(Exception e) {
             log.errorf("Código não enviado para: %s", user.telegramChatId());
-            totpRepository.removerTotp(codigo);
+            otpRepository.removerOtp(codigo);
             return Response.status(Response.Status.NOT_ACCEPTABLE).build();
         }
         
         return Response.status(Response.Status.CREATED).build();
     }
 
-    private Response loginTotp(LoginRequest loginRequest) {
-        Totp codigo = totpRepository.findByValue(loginRequest.totp());
+    private Response loginOtp(LoginRequest loginRequest) {
+        Otp codigo = otpRepository.findByValue(loginRequest.otp());
 
-        if (codigo == null || !codigo.value().equals(loginRequest.totp())) {
+        if (codigo == null || !codigo.value().equals(loginRequest.otp())) {
             return Response.status(Response.Status.UNAUTHORIZED)
-                .entity("Código TOTP inválido")
+                .entity("Código OTP inválido")
                 .build();
         }
 
-        totpRepository.delete("value", codigo.value());
+        otpRepository.delete("value", codigo.value());
 
         if (!codigo.expiresAt().isValid()) {
             return Response.status(Response.Status.UNAUTHORIZED)
-                .entity("Código TOTP expirado")
+                .entity("Código OTP expirado")
                 .build();
         }
 

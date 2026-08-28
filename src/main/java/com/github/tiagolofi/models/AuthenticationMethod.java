@@ -1,7 +1,7 @@
 package com.github.tiagolofi.models;
 
 public enum AuthenticationMethod {
-    TOTP("totp"),
+    OTP("otp"),
     PASSWORD("password");
 
     private String method;

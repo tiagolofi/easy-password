@@ -4,6 +4,6 @@ public record LoginRequest(
     String method,
     String username,
     String password,
-    String totp
+    String otp
 ) {}
 
